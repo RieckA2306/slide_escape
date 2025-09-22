@@ -54,8 +54,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(212, 565, "1", Colors.blue),
-                _buildLevel(125, 520, "2", Colors.red),
+                _buildLevel(212, 565, levels[0], Colors.blue),
+                _buildLevel(125, 520, levels[1], Colors.red),
               ],
             ),
           ),
@@ -65,8 +65,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(200, 560, "10", Colors.green),
-                _buildLevel(100, 510, "11", Colors.orange),
+                _buildLevel(200, 560, levels[2], Colors.green),
+                _buildLevel(100, 510, levels[3], Colors.orange),
               ],
             ),
           ),
@@ -92,14 +92,19 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     );
   }
 
-  Widget _buildLevel(double left, double top, String text, Color color) {
+  Widget _buildLevel(double left, double top, Level level, Color color) {
     return Positioned(
       left: left,
       top: top,
-      child: CircleAvatar(
-        radius: 26,
-        backgroundColor: color,
-        child: Text(text),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.pushNamed(context, "/game", arguments: level);
+        },
+        child: CircleAvatar(
+          radius: 26,
+          backgroundColor: color,
+          child: Text(level.id.toString()),
+        ),
       ),
     );
   }
