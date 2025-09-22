@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:game_levels_scrolling_map/game_levels_scrolling_map.dart';
-import 'package:game_levels_scrolling_map/model/point_model.dart';
-
 import '../../domain/level.dart';
 
 class LevelMapScreen extends StatelessWidget {
@@ -9,63 +6,53 @@ class LevelMapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy Levels (wie vorher)
-    final levels = List.generate(
-      20,
-          (i) => Level(
-        id: i + 1,
-        type: (i + 1) % 20 == 0
-            ? LevelType.boss
-            : (i + 1) % 10 == 0
-            ? LevelType.moveLimit
-            : (i + 1) % 5 == 0
-            ? LevelType.timeLimit
-            : LevelType.normal,
-        size: 6,
-        targetIds: [1],
-      ),
-    );
-
-    // Punkte für die pub.dev-Map erzeugen
-    final points = levels.map((level) {
-      return PointModel(
-        100,
-        GestureDetector(
-          onTap: () {
-            // ✅ Übergang bleibt identisch
-            Navigator.pushNamed(context, "/game", arguments: level);
-          },
-          child: CircleAvatar(
-            radius: 20,
-            backgroundColor: _getColor(level.type),
-            child: Text(level.id.toString()),
-          ),
-        ),
-      )..isCurrent = (level.id == 5); // Beispiel: aktuelles Level markieren
-    }).toList();
+    // Testlevels
+    final levels = [
+      Level(id: 1, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: const Text("Level Map")),
-      body: GameLevelsScrollingMap.scrollable(
-        imageUrl: "assets/drawable/map_vertical.png",
-        svgUrl: "",
-        direction: Axis.vertical,
-        reverseScrolling: true,
-        points: points,
+      body: Stack(
+        children: [
+          // Hintergrundbild füllt den kompletten Screen
+          Positioned.fill(
+            child: Image.asset(
+              "assets/map_background/background.jpg",
+              fit: BoxFit.cover, // skaliert so, dass alles ausgefüllt ist
+            ),
+          ),
+
+          // Level 1 Button
+          Positioned(
+            left: 216, // X-Koordinate
+            top: 748,  // Y-Koordinate
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, "/game", arguments: levels[0]),
+              child: const CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.blue,
+                child: Text("1"),
+              ),
+            ),
+          ),
+
+          // Level 2 Button
+          Positioned(
+            left: 125,
+            top: 520,
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, "/game", arguments: levels[1]),
+              child: const CircleAvatar(
+                radius: 26,
+                backgroundColor: Colors.red,
+                child: Text("2"),
+              ),
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  Color _getColor(LevelType type) {
-    switch (type) {
-      case LevelType.timeLimit:
-        return Colors.red;
-      case LevelType.moveLimit:
-        return Colors.blue;
-      case LevelType.boss:
-        return Colors.purple;
-      default:
-        return Colors.green;
-    }
   }
 }

@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  game_levels_scrolling_map: ^0.0.6   # map added
+  game_levels_scrolling_map: ^0.0.7   # map added
 
 dev_dependencies:
   flutter_test:
@@ -23,5 +23,4 @@ flutter:
   uses-material-design: true
 
   assets:         # ✅ register the Map assests
-    - assets/drawable/map_vertical.png
-    - assets/svg/map_vertical.svg
+    - assets/map_background/background.jpg
