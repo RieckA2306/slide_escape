@@ -1,57 +1,105 @@
 import 'package:flutter/material.dart';
 import '../../domain/level.dart';
 
-class LevelMapScreen extends StatelessWidget {
+class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});
 
   @override
+  State<LevelMapScreen> createState() => _LevelMapScreenState();
+}
+
+class _LevelMapScreenState extends State<LevelMapScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // beim ersten Frame nach ganz unten scrollen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Testlevels
     final levels = [
       Level(id: 1, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 10, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 11, type: LevelType.normal, size: 6, targetIds: [1]),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Level Map")),
-      body: Stack(
-        children: [
-          // Hintergrundbild füllt den kompletten Screen
-          Positioned.fill(
-            child: Image.asset(
-              "assets/map_background/background.jpg",
-              fit: BoxFit.cover, // skaliert so, dass alles ausgefüllt ist
-            ),
-          ),
-
-          // Level 1 Button
-          Positioned(
-            left: 216, // X-Koordinate
-            top: 748,  // Y-Koordinate
-            child: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, "/game", arguments: levels[0]),
-              child: const CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.blue,
-                child: Text("1"),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Sticky Header oben
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 80,
+            backgroundColor: Colors.white,
+            flexibleSpace: const Center(
+              child: Text(
+                "Level Map",
+                style: TextStyle(fontSize: 22, color: Colors.black),
               ),
             ),
           ),
 
-          // Level 2 Button
-          Positioned(
-            left: 125,
-            top: 520,
-            child: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, "/game", arguments: levels[1]),
-              child: const CircleAvatar(
-                radius: 26,
-                backgroundColor: Colors.red,
-                child: Text("2"),
-              ),
+          // Abschnitt mit Level 1 & 2 (ganz unten Startpunkt)
+          SliverToBoxAdapter(
+            child: _buildMapSection(
+              context,
+              children: [
+                _buildLevel(212, 565, "1", Colors.blue),
+                _buildLevel(125, 520, "2", Colors.red),
+              ],
+            ),
+          ),
+
+          // Abschnitt mit Level 10 & 11 (weiter oben)
+          SliverToBoxAdapter(
+            child: _buildMapSection(
+              context,
+              children: [
+                _buildLevel(200, 560, "10", Colors.green),
+                _buildLevel(100, 510, "11", Colors.orange),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMapSection(BuildContext context,
+      {required List<Widget> children}) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Stack(
+        children: [
+          Image.asset(
+            "assets/map_background/background.jpg",
+            width: MediaQuery.of(context).size.width,
+            fit: BoxFit.fitWidth,
+          ),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevel(double left, double top, String text, Color color) {
+    return Positioned(
+      left: left,
+      top: top,
+      child: CircleAvatar(
+        radius: 26,
+        backgroundColor: color,
+        child: Text(text),
       ),
     );
   }
