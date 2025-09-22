@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:game_levels_scrolling_map/game_levels_scrolling_map.dart';
+import 'package:game_levels_scrolling_map/model/point_model.dart';
+
 import '../../domain/level.dart';
 
 class LevelMapScreen extends StatelessWidget {
@@ -6,7 +9,7 @@ class LevelMapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy Levels für Test
+    // Dummy Levels (wie vorher)
     final levels = List.generate(
       20,
           (i) => Level(
@@ -23,25 +26,32 @@ class LevelMapScreen extends StatelessWidget {
       ),
     );
 
+    // Punkte für die pub.dev-Map erzeugen
+    final points = levels.map((level) {
+      return PointModel(
+        100,
+        GestureDetector(
+          onTap: () {
+            // ✅ Übergang bleibt identisch
+            Navigator.pushNamed(context, "/game", arguments: level);
+          },
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: _getColor(level.type),
+            child: Text(level.id.toString()),
+          ),
+        ),
+      )..isCurrent = (level.id == 5); // Beispiel: aktuelles Level markieren
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text("Level Map")),
-      body: Center(
-        child: Wrap(
-          spacing: 20,
-          runSpacing: 20,
-          children: levels.map((level) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "/game", arguments: level);
-              },
-              child: CircleAvatar(
-                radius: 30,
-                backgroundColor: _getColor(level.type),
-                child: Text(level.id.toString()),
-              ),
-            );
-          }).toList(),
-        ),
+      body: GameLevelsScrollingMap.scrollable(
+        imageUrl: "assets/drawable/map_vertical.png",
+        svgUrl: "",
+        direction: Axis.vertical,
+        reverseScrolling: true,
+        points: points,
       ),
     );
   }
