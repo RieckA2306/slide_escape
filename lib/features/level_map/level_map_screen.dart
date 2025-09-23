@@ -30,6 +30,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 10, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 11, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 19, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 20, type: LevelType.normal, size: 6, targetIds: [1]),
     ];
 
     return Scaffold(
@@ -39,7 +41,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           // Sticky Header oben
           SliverAppBar(
             pinned: true,
-            expandedHeight: 80,
+            expandedHeight: 70,
             backgroundColor: Colors.white,
             flexibleSpace: const Center(
               child: Text(
@@ -54,8 +56,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(212, 565, levels[0], Colors.blue),
-                _buildLevel(125, 520, levels[1], Colors.red),
+                _buildLevel(204, 558, levels[0]),
+                _buildLevel(122, 518, levels[1]),
               ],
             ),
           ),
@@ -65,8 +67,19 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(200, 560, levels[2], Colors.green),
-                _buildLevel(100, 510, levels[3], Colors.orange),
+                _buildLevel(204, 558, levels[2]),
+                _buildLevel(122, 518, levels[3]),
+              ],
+            ),
+          ),
+
+          // Abschnitt mit Level 19 & 20 (weiter oben)
+          SliverToBoxAdapter(
+            child: _buildMapSection(
+              context,
+              children: [
+                _buildLevel(204, 558, levels[4]),
+                _buildLevel(122, 518, levels[5]),
               ],
             ),
           ),
@@ -92,7 +105,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     );
   }
 
-  Widget _buildLevel(double left, double top, Level level, Color color) {
+  Widget _buildLevel(double left, double top, Level level) {
     return Positioned(
       left: left,
       top: top,
@@ -100,10 +113,33 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         onTap: () {
           Navigator.pushNamed(context, "/game", arguments: level);
         },
-        child: CircleAvatar(
-          radius: 26,
-          backgroundColor: color,
-          child: Text(level.id.toString()),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // PNG Button
+            Image.asset(
+              "assets/level_background/normal_level_background.png",
+              width: 63,   // <- hier kannst du die Größe anpassen
+              height: 63,  // gleichmäßig halten
+            ),
+
+            // Levelnummer mittig
+            Text(
+              level.id.toString(),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    blurRadius: 4,
+                    color: Colors.black54,
+                    offset: Offset(1, 1),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
