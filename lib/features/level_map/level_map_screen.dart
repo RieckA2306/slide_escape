@@ -41,7 +41,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           // Neuer Header oben
           SliverAppBar(
             pinned: true,
-            expandedHeight: 90,
+            expandedHeight: 100,
+            collapsedHeight: 80,
             backgroundColor: Colors.white,
             flexibleSpace: SafeArea(
               child: Stack(
@@ -53,7 +54,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   // Left: Level background + number
                   Positioned(
                     left: 5,   // adjust freely
-                    top: 0,    // adjust freely
+                    top: 13,    // adjust freely
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -84,9 +85,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   // Progress bar next to level indicator
                   Positioned(
                     left: 62,   // adjust freely
-                    top: 26,    // adjust freely
+                    top: 39,    // adjust freely
                     child: SizedBox(
-                      width: 100,
+                      width: 90,
                       height: 12,
                       child: LinearProgressIndicator(
                         value: 0.4,
@@ -98,12 +99,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
 
                   // Center: Frame image
                   Positioned(
-                    left: 171,  // adjust freely
-                    top: 0,    // adjust freely
+                    left: 161,  // adjust freely
+                    top: 3,    // adjust freely
                     child: Image.asset(
                       "assets/app_bar/frames/frame1.png",
-                      width: 70,
-                      height: 70,
+                      width: 90,
+                      height: 90,
                     ),
                   ),
 
