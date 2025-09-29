@@ -38,18 +38,97 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // Sticky Header oben
+          // Neuer Header oben
           SliverAppBar(
             pinned: true,
-            expandedHeight: 70,
+            expandedHeight: 80,
             backgroundColor: Colors.white,
-            flexibleSpace: const Center(
-              child: Text(
-                "Level Map",
-                style: TextStyle(fontSize: 22, color: Colors.black),
+            flexibleSpace: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Links: Kreis + ProgressBar
+                    Row(
+                      children: [
+                        // Kreis mit "1"
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.orange,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "1",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // ProgressBar
+                        SizedBox(
+                          width: 100,
+                          height: 12,
+                          child: LinearProgressIndicator(
+                            value: 0.4, // Dummy-Wert
+                            backgroundColor: Colors.grey,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Mitte: Frame-Bild
+                    Image.asset(
+                      "assets/frames/frame1.png",
+                      width: 80,
+                      height: 80,
+                    ),
+
+                    // Rechts: Gold + Zahl + Zahnrad
+                    Row(
+                      children: [
+                        // Platzhalter für Goldbarren
+                        Container(
+                          width: 50,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.amber[400],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "10",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Zahnrad
+                        IconButton(
+                          icon: const Icon(Icons.settings, color: Colors.black),
+                          onPressed: () {}, // noch ohne Funktion
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+
 
           // Abschnitt mit Level 1 & 2 (ganz unten Startpunkt)
           SliverToBoxAdapter(
@@ -119,8 +198,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             // PNG Button
             Image.asset(
               "assets/level_background/normal_level_background.png",
-              width: 63,   // <- hier kannst du die Größe anpassen
-              height: 63,  // gleichmäßig halten
+              width: 63,
+              height: 63,
             ),
 
             // Levelnummer mittig
