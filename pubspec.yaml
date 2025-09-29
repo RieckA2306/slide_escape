@@ -25,4 +25,7 @@ flutter:
   assets:         # ✅ register the Map assests
     - assets/map_background/background.jpg
     - assets/level_background/normal_level_background.png
-    - assets/frames/frame1.png
+    - assets/app_bar/frames/frame1.png
+    - assets/app_bar/goldbar.png
+    - assets/app_bar/level_background.png
+    - assets/app_bar/settings.png

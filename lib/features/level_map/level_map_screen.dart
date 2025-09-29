@@ -41,90 +41,117 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           // Neuer Header oben
           SliverAppBar(
             pinned: true,
-            expandedHeight: 80,
+            expandedHeight: 90,
             backgroundColor: Colors.white,
             flexibleSpace: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Links: Kreis + ProgressBar
-                    Row(
-                      children: [
-                        // Kreis mit "1"
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.orange,
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "1",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
+              child: Stack(
+                children: [
+                  // Reason for using Stack:
+                  // Stack + Positioned gives you full control over positions (x,y) of each widget.
+                  // Unlike Row/Column, resizing one widget will not push/move the others.
 
-                        // ProgressBar
-                        SizedBox(
-                          width: 100,
-                          height: 12,
-                          child: LinearProgressIndicator(
-                            value: 0.4, // Dummy-Wert
-                            backgroundColor: Colors.grey,
-                            color: Colors.green,
+                  // Left: Level background + number
+                  Positioned(
+                    left: 5,   // adjust freely
+                    top: 0,    // adjust freely
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/app_bar/level_background.png",
+                          width: 65,
+                          height: 65,
+                        ),
+                        const Text(
+                          "1",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 3,
+                                color: Colors.black54,
+                                offset: Offset(1, 1),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
+                  ),
 
-                    // Mitte: Frame-Bild
-                    Image.asset(
-                      "assets/frames/frame1.png",
-                      width: 80,
-                      height: 80,
+                  // Progress bar next to level indicator
+                  Positioned(
+                    left: 62,   // adjust freely
+                    top: 26,    // adjust freely
+                    child: SizedBox(
+                      width: 100,
+                      height: 12,
+                      child: LinearProgressIndicator(
+                        value: 0.4,
+                        backgroundColor: Colors.grey[300],
+                        color: Colors.green,
+                      ),
                     ),
+                  ),
 
-                    // Rechts: Gold + Zahl + Zahnrad
-                    Row(
+                  // Center: Frame image
+                  Positioned(
+                    left: 171,  // adjust freely
+                    top: 0,    // adjust freely
+                    child: Image.asset(
+                      "assets/app_bar/frames/frame1.png",
+                      width: 70,
+                      height: 70,
+                    ),
+                  ),
+
+                  // Right: Gold bar + value
+                  Positioned(
+                    right: 72,  // adjust freely
+                    top: 6,    // adjust freely
+                    child: Row(
                       children: [
-                        // Platzhalter für Goldbarren
-                        Container(
+                        Image.asset(
+                          "assets/app_bar/goldbar.png",
                           width: 50,
-                          height: 30,
+                          height: 50,
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.amber[400],
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.black26),
                           ),
-                          child: const Center(
-                            child: Text(
-                              "10",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+                          child: const Text(
+                            "10",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-
-                        // Zahnrad
-                        IconButton(
-                          icon: const Icon(Icons.settings, color: Colors.black),
-                          onPressed: () {}, // noch ohne Funktion
-                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  // Far right: Settings icon
+                  Positioned(
+                    right: 10,  // adjust freely
+                    top: 5,    // adjust freely
+                    child: GestureDetector(
+                      onTap: () {}, // no function yet
+                      child: Image.asset(
+                        "assets/app_bar/settings.png",
+                        width: 55,
+                        height: 55,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
