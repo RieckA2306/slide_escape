@@ -15,7 +15,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   void initState() {
     super.initState();
 
-    // beim ersten Frame nach ganz unten scrollen
+    // Scroll down to the bottom after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -38,23 +38,20 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // Neuer Header oben
+          // Top header
           SliverAppBar(
             pinned: true,
-            expandedHeight: 100,
-            collapsedHeight: 80,
+            expandedHeight: 65,
+            collapsedHeight: 65,
             backgroundColor: Colors.white,
             flexibleSpace: SafeArea(
               child: Stack(
+                clipBehavior: Clip.none, // allow children to overflow
                 children: [
-                  // Reason for using Stack:
-                  // Stack + Positioned gives you full control over positions (x,y) of each widget.
-                  // Unlike Row/Column, resizing one widget will not push/move the others.
-
-                  // Left: Level background + number
+                  // Left: level background + number
                   Positioned(
-                    left: 5,   // adjust freely
-                    top: 13,    // adjust freely
+                    left: 10,
+                    top: 0,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -84,8 +81,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
 
                   // Progress bar next to level indicator
                   Positioned(
-                    left: 62,   // adjust freely
-                    top: 39,    // adjust freely
+                    left: 67,
+                    top: 27,
                     child: SizedBox(
                       width: 90,
                       height: 12,
@@ -97,10 +94,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                     ),
                   ),
 
-                  // Center: Frame image
+                  // Center: frame image (overhanging)
                   Positioned(
-                    left: 161,  // adjust freely
-                    top: 3,    // adjust freely
+                    left: 161,
+                    bottom: -20, // negative value makes it overhang below AppBar
                     child: Image.asset(
                       "assets/app_bar/frames/frame1.png",
                       width: 90,
@@ -108,10 +105,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                     ),
                   ),
 
-                  // Right: Gold bar + value
+                  // Right: gold bar + value
                   Positioned(
-                    right: 72,  // adjust freely
-                    top: 6,    // adjust freely
+                    right: 72,
+                    top: 6,
                     child: Row(
                       children: [
                         Image.asset(
@@ -121,7 +118,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                         ),
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(6),
@@ -139,10 +137,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                     ),
                   ),
 
-                  // Far right: Settings icon
+                  // Far right: settings icon
                   Positioned(
-                    right: 10,  // adjust freely
-                    top: 5,    // adjust freely
+                    right: 10,
+                    top: 4,
                     child: GestureDetector(
                       onTap: () {}, // no function yet
                       child: Image.asset(
@@ -157,8 +155,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
 
-
-          // Abschnitt mit Level 1 & 2 (ganz unten Startpunkt)
+          // Section with Level 1 & 2 (bottom start point)
           SliverToBoxAdapter(
             child: _buildMapSection(
               context,
@@ -169,7 +166,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
 
-          // Abschnitt mit Level 10 & 11 (weiter oben)
+          // Section with Level 10 & 11 (further up)
           SliverToBoxAdapter(
             child: _buildMapSection(
               context,
@@ -180,7 +177,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
 
-          // Abschnitt mit Level 19 & 20 (weiter oben)
+          // Section with Level 19 & 20 (further up)
           SliverToBoxAdapter(
             child: _buildMapSection(
               context,
@@ -191,6 +188,50 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
         ],
+      ),
+
+      // Footer / Bottom Navigation Bar
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        height: 80,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: const [
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Shop",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Map",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Leaderboard",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -223,14 +264,14 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // PNG Button
+            // Level background image (button style)
             Image.asset(
               "assets/level_background/normal_level_background.png",
               width: 63,
               height: 63,
             ),
 
-            // Levelnummer mittig
+            // Level number text in the center
             Text(
               level.id.toString(),
               style: const TextStyle(
