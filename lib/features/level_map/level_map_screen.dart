@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/level.dart';
+import '../../widgets/app_footer.dart';
 
 class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});
@@ -155,13 +156,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
 
-          // Section with Level 1 & 2 (bottom start point)
+          // Section with Level 19 & 20 (further up)
           SliverToBoxAdapter(
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(204, 558, levels[0]),
-                _buildLevel(122, 518, levels[1]),
+                _buildLevel(204, 558, levels[4]),
+                _buildLevel(122, 518, levels[5]),
               ],
             ),
           ),
@@ -177,13 +178,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
 
-          // Section with Level 19 & 20 (further up)
+          // Section with Level 1 & 2 (bottom start point)
           SliverToBoxAdapter(
             child: _buildMapSection(
               context,
               children: [
-                _buildLevel(204, 558, levels[4]),
-                _buildLevel(122, 518, levels[5]),
+                _buildLevel(204, 558, levels[0]),
+                _buildLevel(122, 518, levels[1]),
               ],
             ),
           ),
@@ -191,48 +192,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       ),
 
       // Footer / Bottom Navigation Bar
-      bottomNavigationBar: Container(
-        color: Colors.white,
-        height: 80,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
-            Expanded(
-              child: Center(
-                child: Text(
-                  "Shop",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  "Map",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  "Leaderboard",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: const AppFooter(activeTab: FooterTab.map),
     );
   }
 
