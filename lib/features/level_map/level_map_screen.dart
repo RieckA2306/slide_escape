@@ -28,6 +28,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     final levels = [
       Level(id: 1, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 3, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 4, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 5, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 6, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 7, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 8, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 9, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 10, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 11, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 19, type: LevelType.normal, size: 6, targetIds: [1]),
@@ -159,8 +166,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           child: _buildMapSection(
             context,
             children: [
-              _buildLevel(204, 558, levels[4]),
-              _buildLevel(122, 518, levels[5]),
+              _buildLevel(204, 558, levels[11]),
+              _buildLevel(122, 518, levels[12]),
             ],
           ),
         ),
@@ -170,8 +177,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           child: _buildMapSection(
             context,
             children: [
-              _buildLevel(204, 558, levels[2]),
-              _buildLevel(122, 518, levels[3]),
+              _buildLevel(204, 558, levels[9]),
+              _buildLevel(122, 518, levels[10]),
             ],
           ),
         ),
@@ -183,6 +190,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             children: [
               _buildLevel(204, 558, levels[0]),
               _buildLevel(122, 518, levels[1]),
+              _buildLevel(256, 438, levels[2]),
+              _buildLevel(125, 373, levels[3]),
+              _buildLevel(231, 287, levels[4]),
+              _buildLevel(118, 207, levels[5]),
+              _buildLevel(238, 140, levels[6]),
+              _buildLevel(129, 45, levels[7]),
+              _buildLevel(256, 8, levels[8]),
             ],
           ),
         ),
