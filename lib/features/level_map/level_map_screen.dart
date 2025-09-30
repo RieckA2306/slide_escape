@@ -98,7 +98,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   left: 161,
                   bottom: -20,
                   child: Image.asset(
-                    "assets/app_bar/frames/frame1.png",
+                    "assets/app_bar/frames/frame2.png",
                     width: 90,
                     height: 90,
                   ),

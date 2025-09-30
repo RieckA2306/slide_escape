@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );
   }
