@@ -15,8 +15,8 @@ class AppFooter extends StatelessWidget {
     super.key,
     required this.activeTab,
     required this.onTabSelected,
-    this.backgroundColor = const Color(0xFFFFFFFF),      // Weiß standard
-    this.activeBackgroundColor = const Color(0xFFF6D1D1) // Rot standard
+    this.backgroundColor = const Color(0xFFF1CCE6),      // Weiß  #F7B4E3
+    this.activeBackgroundColor = const Color(0xFFF1AADC) // Rot standard
   });
 
   @override
@@ -48,6 +48,7 @@ class AppFooter extends StatelessWidget {
           margin: EdgeInsets.only(bottom: isActive ? 8 : 0),
           decoration: BoxDecoration(
             color: isActive ? activeBackgroundColor : backgroundColor,
+            borderRadius: BorderRadius.circular(0),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

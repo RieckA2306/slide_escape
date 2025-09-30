@@ -49,7 +49,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           pinned: true,
           expandedHeight: 65,
           collapsedHeight: 65,
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFF1CCE6),
           flexibleSpace: SafeArea(
             child: Stack(
               clipBehavior: Clip.none,
