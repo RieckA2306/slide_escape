@@ -1,61 +1,20 @@
 import 'package:flutter/material.dart';
-import '../features/level_map/level_map_screen.dart';
-import '../features/shop/shop_screen.dart';
-import '../features/leaderboard/leaderboard_screen.dart';
 
+/// Enum für die Tabs im Footer
 enum FooterTab { shop, map, leaderboard }
 
+/// Footer mit drei Tabs (Shop, Map, Leaderboard).
+/// Funktioniert zusammen mit einem PageView im HomeScreen.
+/// Navigation läuft über den Callback [onTabSelected].
 class AppFooter extends StatelessWidget {
   final FooterTab activeTab;
+  final Function(FooterTab) onTabSelected;
 
-  const AppFooter({super.key, required this.activeTab});
-
-  void _navigate(BuildContext context, FooterTab targetTab) {
-    if (targetTab == activeTab) return;
-
-    Widget targetScreen;
-    switch (targetTab) {
-      case FooterTab.shop:
-        targetScreen = const ShopScreen();
-        break;
-      case FooterTab.map:
-        targetScreen = const LevelMapScreen();
-        break;
-      case FooterTab.leaderboard:
-        targetScreen = const LeaderboardScreen();
-        break;
-    }
-
-    // Reihenfolge bestimmen
-    final tabOrder = [FooterTab.shop, FooterTab.map, FooterTab.leaderboard];
-    final currentIndex = tabOrder.indexOf(activeTab);
-    final targetIndex = tabOrder.indexOf(targetTab);
-
-    // Richtung bestimmen
-    final isForward = targetIndex > currentIndex;
-
-    // Wenn „überspringen“ (z.B. Shop -> Leaderboard), Animation schneller
-    final skip = (currentIndex - targetIndex).abs() > 1;
-
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        transitionDuration: Duration(milliseconds: skip ? 150 : 300),
-        pageBuilder: (_, __, ___) => targetScreen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final begin = Offset(isForward ? 1.0 : -1.0, 0.0);
-          const end = Offset.zero;
-          final tween = Tween(begin: begin, end: end)
-              .chain(CurveTween(curve: Curves.easeInOut));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
+  const AppFooter({
+    super.key,
+    required this.activeTab,
+    required this.onTabSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,61 +24,30 @@ class AppFooter extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Shop
-          Expanded(
-            child: InkWell(
-              onTap: () => _navigate(context, FooterTab.shop),
-              child: Center(
-                child: Text(
-                  "Shop",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: activeTab == FooterTab.shop
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Map
-          Expanded(
-            child: InkWell(
-              onTap: () => _navigate(context, FooterTab.map),
-              child: Center(
-                child: Text(
-                  "Map",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: activeTab == FooterTab.map
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Leaderboard
-          Expanded(
-            child: InkWell(
-              onTap: () => _navigate(context, FooterTab.leaderboard),
-              child: Center(
-                child: Text(
-                  "Leaderboard",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: activeTab == FooterTab.leaderboard
-                        ? Colors.blue
-                        : Colors.black,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildTab("Shop", FooterTab.shop),
+          _buildTab("Map", FooterTab.map),
+          _buildTab("Leaderboard", FooterTab.leaderboard),
         ],
+      ),
+    );
+  }
+
+  /// Baut einen einzelnen Tab-Button
+  Widget _buildTab(String label, FooterTab tab) {
+    final isActive = activeTab == tab;
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTabSelected(tab),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: isActive ? Colors.blue : Colors.black,
+            ),
+          ),
+        ),
       ),
     );
   }

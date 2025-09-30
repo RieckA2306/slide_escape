@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'features/level_map/level_map_screen.dart';
+import 'features/home/home_screen.dart';
 import 'features/game/game_screen.dart';
 import 'domain/level.dart';
 
@@ -13,17 +13,24 @@ class SlideEscapeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Slide Escape',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: "/map",
-      routes: {
-        "/map": (context) => const LevelMapScreen(),
-        "/game": (context) {
-          final level = ModalRoute.of(context)!.settings.arguments as Level;
-          return GameScreen(level: level);
-        },
+
+      // >>> WICHTIG: Einstieg ist jetzt der HomeScreen mit PageView + Footer
+      home: const HomeScreen(),
+
+      // Du brauchst weiterhin nur die Game-Route für Levelstart
+      onGenerateRoute: (settings) {
+        if (settings.name == '/game') {
+          final level = settings.arguments as Level;
+          return MaterialPageRoute(
+            builder: (_) => GameScreen(level: level),
+          );
+        }
+        return null;
       },
     );
   }
