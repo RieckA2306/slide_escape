@@ -27,7 +27,7 @@ flutter:
     - assets/level_background/normal_level_background.png
     - assets/app_bar/frames/frame1.png
     - assets/app_bar/frames/frame2.png
-    - assets/app_bar/frames/frame3.jpg
+    - assets/app_bar/frames/frame3.png
     - assets/app_bar/frames/frame4.png
     - assets/app_bar/goldbar.png
     - assets/app_bar/level_background.png
@@ -35,3 +35,4 @@ flutter:
     - assets/app_footer/leaderboard.png
     - assets/app_footer/map.png
     - assets/app_footer/shop.png
+    - assets/app_bar/profile_pictures/star.png

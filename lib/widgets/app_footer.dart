@@ -35,6 +35,7 @@ class AppFooter extends StatelessWidget {
     );
   }
 
+
   /// Baut einen einzelnen Tab-Button
   Widget _buildTab(String label, String assetPath, FooterTab tab) {
     final isActive = activeTab == tab;
