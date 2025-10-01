@@ -58,51 +58,81 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Left: level background + number
+                // ===== Level + Progress (Candy-Crush style, merged block) =====
                 Positioned(
                   left: 10,
                   top: 0,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/app_bar/level_background.png",
-                        width: 65,
-                        height: 65,
-                      ),
-                      const Text(
-                        "1",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 3,
-                              color: Colors.black54,
-                              offset: Offset(1, 1),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Progress bar
-                Positioned(
-                  left: 67,
-                  top: 27,
                   child: SizedBox(
-                    width: 90,
-                    height: 12,
-                    child: LinearProgressIndicator(
-                      value: 0.4,
-                      backgroundColor: Colors.grey[300],
-                      color: Colors.green,
+                    width: 155,
+                    height: 65,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // --- PROGRESS BAR (behind the icon) ---
+                        Positioned(
+                          left: 57,
+                          top: 25,
+                          child: ClipRRect(
+                            // round ONLY the right corners
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(8),
+                              bottomRight: Radius.circular(8),
+                            ),
+                            child: Container(
+                              width: 90,
+                              height: 14,
+                              color: const Color(0xFFF6EBF6), // track/bg color (HEX)
+                              child: Stack(
+                                children: const [
+                                  // fill (0.0..1.0)
+                                  FractionallySizedBox(
+                                    widthFactor: 0.30,
+                                    heightFactor: 1.0,               // take full bar height (important!)
+                                    child: ColoredBox(
+                                      color: Color(0xFFE3B94E), // fill color (HEX)
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // --- LEVEL ICON (in the foreground) ---
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: const [
+                              // dein vorhandenes Asset + Größe
+                              Image(
+                                image: AssetImage("assets/app_bar/level_background.png"),
+                                width: 65,
+                                height: 65,
+                              ),
+                              Text(
+                                "1",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 3,
+                                      color: Colors.black54,
+                                      offset: Offset(1, 1),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                // ===== Ende: Level + Progress =====
 
                 // Frame image + Star inside
                 Positioned(
@@ -114,7 +144,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       // Stern zuerst (hinten)
                       Image.asset(
                         "assets/app_bar/profile_pictures/star.png",
-                        width: 60, // ggf. anpassen
+                        width: 60,
                         height: 60,
                       ),
                       // Frame oben drauf
@@ -127,35 +157,31 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   ),
                 ),
 
-
                 // Gold + value (Candy-Crush style)
                 Positioned(
                   right: 48,
                   top: 5,
                   child: SizedBox(
-                    // Make sure the Stack has enough room: gold size + box width - overlap
-                    width: 120,  // tweak as needed
-                    height: 53,  // usually your goldbar size
+                    width: 120,
+                    height: 53,
                     child: Stack(
-                      clipBehavior: Clip.none, // allow the value box to extend beyond the stack
+                      clipBehavior: Clip.none,
                       children: [
-                        // --- VALUE BOX (behind the goldbar) ---
+                        // value box (behind)
                         Positioned(
-                          // Push the value box to the right so the goldbar overlaps its left edge
-                          left: 30,          // overlap amount: smaller = more overlap
-                          top: 14, // vertical centering for a 34px-high box (adjust if you change height)
+                          left: 30,
+                          top: 14,
                           child: Container(
-                            // >>> Set your box size here <<<
-                            width: 70,   // <-- value box width (customizable)
-                            height: 25,  // <-- value box height (customizable)
+                            width: 70,
+                            height: 25,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF6EBF6),      // <-- background color (customizable)
-                              borderRadius: BorderRadius.circular(12), // <-- corner radius (customizable)
+                              color: const Color(0xFFF6EBF6),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.black26),
                             ),
                             child: const Text(
-                              "10", // make dynamic if needed
+                              "10",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -164,13 +190,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                             ),
                           ),
                         ),
-
-                        // --- GOLDBAR (in the foreground) ---
+                        // goldbar (front)
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Image.asset(
                             "assets/app_bar/goldbar.png",
-                            width: 60,  // goldbar size
+                            width: 60,
                             height: 60,
                           ),
                         ),
@@ -178,7 +203,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                     ),
                   ),
                 ),
-
 
                 // Settings icon
                 Positioned(
@@ -197,6 +221,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             ),
           ),
         ),
+
 
         // Section with Level 21 & 29
         SliverToBoxAdapter(
