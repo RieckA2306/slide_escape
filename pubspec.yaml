@@ -11,8 +11,17 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # UI Icons
   cupertino_icons: ^1.0.8
-  game_levels_scrolling_map: ^0.0.7   # map added
+
+  # Map feature you already use
+  game_levels_scrolling_map: ^0.0.7
+
+  # 🧩 State management for game logic
+  flutter_riverpod: ^2.5.1
+
+  # 🧠 Local storage for progress, stars, unlocked levels
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -22,7 +31,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:         # ✅ register the Map assests
+  assets:
+    # ✅ Existing map and UI assets
     - assets/map_background/background.jpg
     - assets/level_background/normal_level_background.png
     - assets/app_bar/frames/frame1.png
@@ -36,3 +46,6 @@ flutter:
     - assets/app_footer/map.png
     - assets/app_footer/shop.png
     - assets/app_bar/profile_pictures/star.png
+
+    # ✅ Add game-level JSONs for Unblock Me board
+    - assets/levels/
