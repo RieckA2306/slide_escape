@@ -12,5 +12,5 @@
     { "id": "F", "row": 2, "col": 5, "length": 3, "orientation": "v" },
     { "id": "G", "row": 0, "col": 2, "length": 3, "orientation": "v" }
   ],
-  "par": 10
+  "par": 11
 }

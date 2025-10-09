@@ -7,6 +7,13 @@ class GameHud extends ConsumerWidget {
 
   const GameHud({super.key, required this.onRestart});
 
+  String _fmtTime(int? secs) {
+    if (secs == null) return '--:--';
+    final m = secs ~/ 60;
+    final s = secs % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameControllerProvider);
@@ -14,6 +21,7 @@ class GameHud extends ConsumerWidget {
 
     final used = state.movesUsed;
     final limit = state.moveLimit;
+    final timeLeft = state.timeLeft;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -37,6 +45,10 @@ class GameHud extends ConsumerWidget {
           Text('Moves: $used')
         else
           Text('Moves: $used / $limit'),
+        if (state.timeLimit != null) ...[
+          const SizedBox(width: 24),
+          Text('⏱ ${_fmtTime(timeLeft)}'),
+        ],
       ],
     );
   }

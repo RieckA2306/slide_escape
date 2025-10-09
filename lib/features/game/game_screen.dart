@@ -29,8 +29,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
     _repo = LevelRepository();
-    // Map Level.id -> asset: assets/levels/level_XXX.json
-    _assetPath = 'assets/levels/level_${widget.level.id.toString().padLeft(3, '0')}.json';
+    _assetPath =
+    'assets/levels/level_${widget.level.id.toString().padLeft(3, '0')}.json';
     _boardFuture = _repo.load(_assetPath);
   }
 
@@ -40,7 +40,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       builder: (_) => WinDialog(
         moves: moves,
         onNext: () {
-          // TODO: wire this to your level select / next level navigation
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Next level not wired yet.')),
           );
@@ -49,15 +48,29 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  void _showFailDialog(int moves, void Function() onRestart) {
+  void _showFailDialog({
+    required int moves,
+    required VoidCallback onRestart,
+    required FailReason reason,
+  }) {
+    final reasonText =
+    reason == FailReason.timeUp ? "Time's up" : "Out of moves";
     showDialog(
       context: context,
       builder: (_) => FailDialog(
+        title: reasonText,
         moves: moves,
         onRestart: onRestart,
         onExit: () => Navigator.of(context).maybePop(),
       ),
     );
+  }
+
+  String _fmtTime(int? secs) {
+    if (secs == null) return '--:--';
+    final m = secs ~/ 60;
+    final s = secs % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -77,23 +90,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
         final initialBoard = snap.data!;
 
-        // Decide move limit from Level metadata:
-        // If Level.type == moveLimit and a moveLimit is provided, we enforce it.
-        final int? moveLimit = (widget.level.type == LevelType.moveLimit)
-            ? widget.level.moveLimit
-            : null;
+        // Decide limits based on Level metadata
+        final int? moveLimit =
+        (widget.level.type == LevelType.moveLimit) ? widget.level.moveLimit : null;
+        final int? timeLimit =
+        (widget.level.type == LevelType.timeLimit) ? widget.level.timeLimit : null;
 
         return ProviderScope(
           overrides: [
             gameControllerProvider.overrideWith(
-                  (ref) => GameController(initialBoard, moveLimit: moveLimit),
+                  (ref) => GameController(
+                initialBoard,
+                moveLimit: moveLimit,
+                timeLimit: timeLimit,
+              ),
             ),
           ],
           child: _GameScaffold(
             level: widget.level,
             initialBoard: initialBoard,
-            onWin: _showWinDialog,
-            onFail: _showFailDialog,
+            showWin: _showWinDialog,
+            showFail: _showFailDialog,
+            fmtTime: _fmtTime,
           ),
         );
       },
@@ -104,14 +122,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 class _GameScaffold extends ConsumerWidget {
   final Level level;
   final Board initialBoard;
-  final void Function(int moves) onWin;
-  final void Function(int moves, void Function() onRestart) onFail;
+  final void Function(int moves) showWin;
+  final void Function({
+  required int moves,
+  required VoidCallback onRestart,
+  required FailReason reason,
+  }) showFail;
+  final String Function(int? secs) fmtTime;
 
   const _GameScaffold({
     required this.level,
     required this.initialBoard,
-    required this.onWin,
-    required this.onFail,
+    required this.showWin,
+    required this.showFail,
+    required this.fmtTime,
   });
 
   @override
@@ -119,12 +143,16 @@ class _GameScaffold extends ConsumerWidget {
     final state = ref.watch(gameControllerProvider);
     final controller = ref.read(gameControllerProvider.notifier);
 
-    // Show win/fail dialog once state flips.
+    // Show dialogs on terminal states
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (state.solved) {
-        onWin(state.history.length);
-      } else if (state.failed) {
-        onFail(state.history.length, () => controller.restart(initialBoard));
+        showWin(state.history.length);
+      } else if (state.failed && state.failReason != null) {
+        showFail(
+          moves: state.history.length,
+          onRestart: () => controller.restart(initialBoard),
+          reason: state.failReason!,
+        );
       }
     });
 
@@ -139,11 +167,11 @@ class _GameScaffold extends ConsumerWidget {
                 child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
               ),
             ),
-          if (level.timeLimit != null)
+          if (state.timeLimit != null)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('⏱️ ${level.timeLimit}s'),
+                child: Text('⏱ ${fmtTime(state.timeLeft)}'),
               ),
             ),
         ],
@@ -151,9 +179,7 @@ class _GameScaffold extends ConsumerWidget {
       body: Column(
         children: [
           const SizedBox(height: 8),
-          GameHud(
-            onRestart: () => controller.restart(initialBoard),
-          ),
+          GameHud(onRestart: () => controller.restart(initialBoard)),
           const SizedBox(height: 8),
           Expanded(
             child: Padding(

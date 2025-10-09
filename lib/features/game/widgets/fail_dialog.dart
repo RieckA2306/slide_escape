@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class FailDialog extends StatelessWidget {
-  final int moves;
+  final String title;        // e.g., "Time's up" or "Out of moves"
+  final int moves;           // moves used
   final VoidCallback onRestart;
   final VoidCallback? onExit;
 
   const FailDialog({
     super.key,
+    required this.title,
     required this.moves,
     required this.onRestart,
     this.onExit,
@@ -15,8 +17,8 @@ class FailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Out of moves'),
-      content: Text('You used $moves moves. The limit is reached.'),
+      title: Text(title),
+      content: Text('You used $moves moves. Try again!'),
       actions: [
         TextButton(
           onPressed: () {

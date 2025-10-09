@@ -31,7 +31,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       Level(id: 3, type: LevelType.moveLimit, size: 6, targetIds: const [], moveLimit: 10, parMoves: 10, difficulty: "medium",),
       Level(id: 4, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 5, type: LevelType.normal, size: 6, targetIds: [1]),
-      Level(id: 6, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 6, type: LevelType.timeLimit, size: 6, targetIds: const [], timeLimit: 15, parMoves: 11, difficulty: "hard",),
       Level(id: 7, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 8, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 9, type: LevelType.normal, size: 6, targetIds: [1]),
