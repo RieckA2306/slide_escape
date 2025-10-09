@@ -26,7 +26,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   @override
   Widget build(BuildContext context) {
     final levels = [
-      Level(id: 1, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 1, type: LevelType.normal, size: 6, targetIds: const [],),
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 3, type: LevelType.moveLimit, size: 6, targetIds: const [], moveLimit: 10, parMoves: 10, difficulty: "medium",),
       Level(id: 4, type: LevelType.normal, size: 6, targetIds: [1]),
