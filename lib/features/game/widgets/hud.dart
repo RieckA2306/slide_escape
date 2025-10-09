@@ -12,16 +12,19 @@ class GameHud extends ConsumerWidget {
     final state = ref.watch(gameControllerProvider);
     final controller = ref.read(gameControllerProvider.notifier);
 
+    final used = state.movesUsed;
+    final limit = state.moveLimit;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         FilledButton.tonal(
-          onPressed: state.history.isEmpty ? null : controller.undo,
+          onPressed: state.history.isEmpty || state.failed ? null : controller.undo,
           child: const Text('Undo'),
         ),
         const SizedBox(width: 12),
         FilledButton.tonal(
-          onPressed: state.future.isEmpty ? null : controller.redo,
+          onPressed: state.future.isEmpty || state.failed ? null : controller.redo,
           child: const Text('Redo'),
         ),
         const SizedBox(width: 12),
@@ -30,7 +33,10 @@ class GameHud extends ConsumerWidget {
           child: const Text('Restart'),
         ),
         const SizedBox(width: 24),
-        Text('Moves: ${state.history.length}'),
+        if (limit == null)
+          Text('Moves: $used')
+        else
+          Text('Moves: $used / $limit'),
       ],
     );
   }
