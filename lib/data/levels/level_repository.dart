@@ -35,7 +35,7 @@ class LevelRepository {
     if (blocks.where((b) => b.isTarget).length != 1) {
       throw StateError('Level must have exactly one target block.');
     }
-    // Inside bounds & no overlaps
+    // Validation for Inside bounds & no overlaps
     final occ = <(int, int), String>{};
     for (final b in blocks) {
       for (final (r, c) in b.cells()) {

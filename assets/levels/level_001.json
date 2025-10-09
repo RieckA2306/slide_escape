@@ -9,5 +9,5 @@
     { "id": "C", "row": 4, "col": 2, "length": 2, "orientation": "h" },
     { "id": "D", "row": 1, "col": 5, "length": 3, "orientation": "v" }
   ],
-  "par": 8
+  "par": 2
 }

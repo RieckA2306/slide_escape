@@ -11,11 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # UI Icons
-  cupertino_icons: ^1.0.8
-
-  # Map feature you already use
-  game_levels_scrolling_map: ^0.0.7
 
   # 🧩 State management for game logic
   flutter_riverpod: ^2.5.1

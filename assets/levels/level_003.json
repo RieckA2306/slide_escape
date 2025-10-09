@@ -1,0 +1,18 @@
+{
+  "width": 6,
+  "height": 6,
+  "blocks": [
+    { "id": "T", "row": 2, "col": 0, "length": 2, "orientation": "h", "isTarget": true },
+
+    { "id": "A", "row": 0, "col": 0, "length": 2, "orientation": "h" },
+    { "id": "B", "row": 0, "col": 2, "length": 2, "orientation": "h" },
+    { "id": "C", "row": 1, "col": 0, "length": 3, "orientation": "h" },
+    { "id": "D", "row": 1, "col": 3, "length": 2, "orientation": "v" },
+    { "id": "E", "row": 1, "col": 4, "length": 2, "orientation": "v" },
+    { "id": "F", "row": 2, "col": 2, "length": 3, "orientation": "v" },
+    { "id": "G", "row": 3, "col": 0, "length": 2, "orientation": "v" },
+    { "id": "H", "row": 3, "col": 5, "length": 3, "orientation": "v" },
+    { "id": "I", "row": 5, "col": 0, "length": 3, "orientation": "h" }
+  ],
+  "par": 10
+}
