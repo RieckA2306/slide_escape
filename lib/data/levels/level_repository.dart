@@ -20,8 +20,9 @@ class LevelRepository {
         row: m['row'] as int,
         col: m['col'] as int,
         length: m['length'] as int,
-        orientation:
-        (m['orientation'] as String) == 'h' ? Orientation2D.h : Orientation2D.v,
+        orientation: (m['orientation'] as String) == 'h'
+            ? Orientation2D.h
+            : Orientation2D.v,
         isTarget: (m['isTarget'] as bool?) ?? false,
       ));
     }
@@ -31,20 +32,22 @@ class LevelRepository {
   }
 
   void _validate(int w, int h, List<Block> blocks) {
-    // Exactly one target block
-    if (blocks.where((b) => b.isTarget).length != 1) {
-      throw StateError('Level must have exactly one target block.');
+    // Allow one or more targets (boss can have 2)
+    final targets = blocks.where((b) => b.isTarget).length;
+    if (targets < 1) {
+      throw StateError('Level must have at least one target block.');
     }
-    // Validation for Inside bounds & no overlaps
+
+    // In-bounds & no overlaps
     final occ = <(int, int), String>{};
     for (final b in blocks) {
       for (final (r, c) in b.cells()) {
         if (r < 0 || r >= h || c < 0 || c >= w) {
-          throw StateError('Block ${b.id} is out of bounds.');
+          throw StateError('Block ${b.id} is out of bounds at ($r,$c).');
         }
         final key = (r, c);
         if (occ.containsKey(key)) {
-          throw StateError('Blocks ${b.id} and ${occ[key]} overlap.');
+          throw StateError('Blocks ${b.id} and ${occ[key]} overlap at cell ($r,$c).');
         }
         occ[key] = b.id;
       }

@@ -8,25 +8,20 @@ import '../../../domain/services/rules.dart';
 /// Reason why a run failed.
 enum FailReason { movesExceeded, timeUp }
 
+/// Custom win condition callback.
+typedef WinCheck = bool Function(Board);
+
 class GameState {
   final Board board;
   final List<Move> history;
   final List<Move> future;
   final bool solved;
 
-  /// Hard cap on number of moves (null = no limit)
   final int? moveLimit;
-
-  /// Time limit in seconds (null = no limit)
   final int? timeLimit;
-
-  /// Remaining time in seconds (null if no time limit)
   final int? timeLeft;
 
-  /// True once the player exceeds any limit (moves or time)
   final bool failed;
-
-  /// Why the run failed (null if not failed)
   final FailReason? failReason;
 
   const GameState({
@@ -71,22 +66,25 @@ class GameState {
 }
 
 class GameController extends StateNotifier<GameState> {
+  final WinCheck _isWin;       // ← injected win condition
   Timer? _timer;
   bool _timerRunning = false;
 
   GameController(
       Board initial, {
         int? moveLimit,
-        int? timeLimit, // seconds
-      }) : super(
-    GameState(
-      board: initial,
-      solved: Rules.isSolved(initial),
-      moveLimit: moveLimit,
-      timeLimit: timeLimit,
-      timeLeft: timeLimit, // initialize countdown
-    ),
-  ) {
+        int? timeLimit,  // seconds
+        WinCheck? isWin, // custom solver for boss levels
+      })  : _isWin = isWin ?? Rules.isSolved,
+        super(
+        GameState(
+          board: initial,
+          solved: (isWin ?? Rules.isSolved)(initial),
+          moveLimit: moveLimit,
+          timeLimit: timeLimit,
+          timeLeft: timeLimit,
+        ),
+      ) {
     _startTimerIfNeeded();
   }
 
@@ -96,31 +94,25 @@ class GameController extends StateNotifier<GameState> {
       Rules.dragBounds(board, b);
 
   void tryMove(Block b, {required int toRow, required int toCol}) {
-    // Prevent interaction after solved or failed
     if (state.solved || state.failed) return;
-
     if (!Rules.canPlace(board, b, toRow, toCol)) return;
+
     final movedBoard = board.applyMove(b.id, toRow, toCol);
     final mv = Move(
-      blockId: b.id,
-      fromRow: b.row,
-      fromCol: b.col,
-      toRow: toRow,
-      toCol: toCol,
+      blockId: b.id, fromRow: b.row, fromCol: b.col, toRow: toRow, toCol: toCol,
     );
 
     final newHistory = [...state.history, mv];
-    final nowSolved = Rules.isSolved(movedBoard);
 
-    // Move-limit check
+    // Move limit
     bool nowFailed = state.failed;
     FailReason? reason = state.failReason;
     if (state.moveLimit != null && newHistory.length > state.moveLimit!) {
-      nowFailed = true;
-      reason = FailReason.movesExceeded;
+      nowFailed = true; reason = FailReason.movesExceeded;
     }
 
-    // Commit state
+    final nowSolved = _isWin(movedBoard);
+
     state = state.copy(
       board: movedBoard,
       history: newHistory,
@@ -130,7 +122,6 @@ class GameController extends StateNotifier<GameState> {
       failReason: reason,
     );
 
-    // Stop timer on terminal states
     if (state.solved || state.failed) _stopTimer();
   }
 
@@ -142,7 +133,7 @@ class GameController extends StateNotifier<GameState> {
       board: newBoard,
       history: [...state.history]..removeLast(),
       future: [last, ...state.future],
-      solved: Rules.isSolved(newBoard),
+      solved: _isWin(newBoard),
     );
   }
 
@@ -155,15 +146,14 @@ class GameController extends StateNotifier<GameState> {
     bool nowFailed = state.failed;
     FailReason? reason = state.failReason;
     if (state.moveLimit != null && newHistory.length > state.moveLimit!) {
-      nowFailed = true;
-      reason = FailReason.movesExceeded;
+      nowFailed = true; reason = FailReason.movesExceeded;
     }
 
     state = state.copy(
       board: newBoard,
       history: newHistory,
       future: [...state.future]..removeAt(0),
-      solved: Rules.isSolved(newBoard),
+      solved: _isWin(newBoard),
       failed: nowFailed,
       failReason: reason,
     );
@@ -194,12 +184,7 @@ class GameController extends StateNotifier<GameState> {
       final cur = state.timeLeft ?? state.timeLimit!;
       final next = cur - 1;
       if (next <= 0) {
-        // Time up
-        state = state.copy(
-          timeLeft: 0,
-          failed: true,
-          failReason: FailReason.timeUp,
-        );
+        state = state.copy(timeLeft: 0, failed: true, failReason: FailReason.timeUp);
         _stopTimer();
       } else {
         state = state.copy(timeLeft: next);

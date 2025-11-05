@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/level.dart';
 import '../../data/levels/level_repository.dart';
 import '../../domain/entities/board.dart';
+import '../../domain/services/rules.dart';
 
 import 'controller/game_controller.dart';
 import 'widgets/board_view.dart';
@@ -24,6 +25,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   late final LevelRepository _repo;
   late Future<Board> _boardFuture;
   late String _assetPath;
+
+  static const bossExitRow = 3; // 0-based (4th row)
+  static const bossExitCol = 3; // 0-based (4th col)
 
   @override
   void initState() {
@@ -90,11 +94,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
         final initialBoard = snap.data!;
 
-        // Decide limits based on Level metadata
+        // Decide limits + win condition based on Level metadata
         final int? moveLimit =
         (widget.level.type == LevelType.moveLimit) ? widget.level.moveLimit : null;
         final int? timeLimit =
         (widget.level.type == LevelType.timeLimit) ? widget.level.timeLimit : null;
+
+        final isBoss = widget.level.type == LevelType.boss;
+        final winCheck = isBoss
+            ? (Board b) => Rules.isSolvedBoss(b, exitRow: bossExitRow, exitCol: bossExitCol)
+            : Rules.isSolved;
 
         return ProviderScope(
           overrides: [
@@ -103,6 +112,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 initialBoard,
                 moveLimit: moveLimit,
                 timeLimit: timeLimit,
+                isWin: winCheck,
               ),
             ),
           ],
@@ -112,6 +122,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             showWin: _showWinDialog,
             showFail: _showFailDialog,
             fmtTime: _fmtTime,
+            isBoss: isBoss,
+            bossExitRow: bossExitRow,
+            bossExitCol: bossExitCol,
           ),
         );
       },
@@ -130,12 +143,19 @@ class _GameScaffold extends ConsumerWidget {
   }) showFail;
   final String Function(int? secs) fmtTime;
 
+  final bool isBoss;
+  final int bossExitRow;
+  final int bossExitCol;
+
   const _GameScaffold({
     required this.level,
     required this.initialBoard,
     required this.showWin,
     required this.showFail,
     required this.fmtTime,
+    required this.isBoss,
+    required this.bossExitRow,
+    required this.bossExitCol,
   });
 
   @override
@@ -143,7 +163,6 @@ class _GameScaffold extends ConsumerWidget {
     final state = ref.watch(gameControllerProvider);
     final controller = ref.read(gameControllerProvider.notifier);
 
-    // Show dialogs on terminal states
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (state.solved) {
         showWin(state.history.length);
@@ -161,19 +180,15 @@ class _GameScaffold extends ConsumerWidget {
         title: Text('Level ${level.id} • ${level.difficulty}'),
         actions: [
           if (state.moveLimit != null)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
-              ),
-            ),
+            Center(child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
+            )),
           if (state.timeLimit != null)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text('⏱ ${fmtTime(state.timeLeft)}'),
-              ),
-            ),
+            Center(child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('⏱ ${fmtTime(state.timeLeft)}'),
+            )),
         ],
       ),
       body: Column(
@@ -186,7 +201,11 @@ class _GameScaffold extends ConsumerWidget {
               padding: const EdgeInsets.all(12.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: const BoardView(),
+                child: BoardView(
+                  bossMode: isBoss,
+                  bossExitRow: bossExitRow,
+                  bossExitCol: bossExitCol,
+                ),
               ),
             ),
           ),

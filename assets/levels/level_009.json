@@ -1,0 +1,11 @@
+{
+  "width": 6,
+  "height": 6,
+  "blocks": [
+    { "id": "T1", "row": 3, "col": 1, "length": 2, "orientation": "h", "isTarget": true },
+    { "id": "T2", "row": 1, "col": 3, "length": 3, "orientation": "v", "isTarget": true },
+
+    { "id": "A", "row": 0, "col": 0, "length": 3, "orientation": "v" }
+  ],
+  "par": 2
+}

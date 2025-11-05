@@ -6,17 +6,26 @@ import '../controller/game_controller.dart';
 import 'block_widget.dart';
 
 class BoardView extends ConsumerStatefulWidget {
-  const BoardView({super.key});
+  const BoardView({
+    super.key,
+    this.bossMode = false,
+    this.bossExitRow = 3, // 0-based: visual marker
+    this.bossExitCol = 3, // 0-based: visual marker
+  });
+
+  /// When true, render two exit markers (right edge at row, bottom edge at col).
+  final bool bossMode;
+  final int bossExitRow;
+  final int bossExitCol;
 
   @override
   ConsumerState<BoardView> createState() => _BoardViewState();
 }
 
 class _BoardViewState extends ConsumerState<BoardView> {
-  /// Transient drag state
   String? _draggingId;
-  double _dragDx = 0; // pixels along x (for horizontal blocks)
-  double _dragDy = 0; // pixels along y (for vertical blocks)
+  double _dragDx = 0;
+  double _dragDy = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +35,9 @@ class _BoardViewState extends ConsumerState<BoardView> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Keep the board square and centered
         final size = math.min(constraints.maxWidth, constraints.maxHeight);
         final cellSize = size / board.width;
 
-        // Convert a block's top-left (row/col) + drag delta into pixel offset.
         Offset blockOffset(Block b) {
           final baseX = b.col * cellSize;
           final baseY = b.row * cellSize;
@@ -42,17 +49,16 @@ class _BoardViewState extends ConsumerState<BoardView> {
           return Offset(baseX, baseY);
         }
 
-        // Legal bounds (in pixels) for the current block during drag.
         ({double minX, double maxX, double minY, double maxY}) pixelBounds(Block b) {
           final br = controller.boundsFor(b);
-          final minX = br.minCol * cellSize;
-          final maxX = br.maxCol * cellSize;
-          final minY = br.minRow * cellSize;
-          final maxY = br.maxRow * cellSize;
-          return (minX: minX, maxX: maxX, minY: minY, maxY: maxY);
+          return (
+          minX: br.minCol * cellSize,
+          maxX: br.maxCol * cellSize,
+          minY: br.minRow * cellSize,
+          maxY: br.maxRow * cellSize,
+          );
         }
 
-        // Snap the dragged block to the nearest legal cell on release.
         void onPanEndFor(Block b) {
           final off = blockOffset(b);
           final newCol = (off.dx / cellSize).round();
@@ -68,49 +74,51 @@ class _BoardViewState extends ConsumerState<BoardView> {
 
           controller.tryMove(b, toRow: clampedRow, toCol: clampedCol);
 
-          // Reset transient drag deltas
-          setState(() {
-            _draggingId = null;
-            _dragDx = 0;
-            _dragDy = 0;
-          });
+          setState(() { _draggingId = null; _dragDx = 0; _dragDy = 0; });
         }
 
         return Center(
           child: SizedBox(
             width: size,
             height: size,
-            // 🚫 Disable interaction when solved or failed (move limit exceeded).
             child: IgnorePointer(
               ignoring: state.solved || state.failed,
               child: Stack(
                 children: [
-                  // Subtle grid background
                   Positioned.fill(
                     child: CustomPaint(
                       painter: _GridPainter(rows: board.height, cols: board.width),
                     ),
                   ),
 
-                  // Exit indicator on the right edge aligned to the target row
-                  Positioned(
-                    right: -8,
-                    top: board.target.row * cellSize + cellSize * 0.25,
-                    child: Container(
-                      width: 12,
-                      height: cellSize * 0.5,
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
+                  // Exit markers
+                  if (!widget.bossMode) ...[
+                    // Standard: show right-edge marker roughly at the row of the (first) target block
+                    Positioned(
+                      right: -8,
+                      top: _firstTargetRow(board, fallback: 2) * cellSize + cellSize * 0.25,
+                      child: _rightMarker(height: cellSize * 0.5),
                     ),
-                  ),
+                  ] else ...[
+                    // Boss: right-edge marker at bossExitRow
+                    Positioned(
+                      right: -8,
+                      top: widget.bossExitRow * cellSize + cellSize * 0.25,
+                      child: _rightMarker(height: cellSize * 0.5),
+                    ),
+                    // Boss: bottom-edge marker at bossExitCol
+                    Positioned(
+                      bottom: -8,
+                      left: widget.bossExitCol * cellSize + cellSize * 0.25,
+                      child: _bottomMarker(width: cellSize * 0.5),
+                    ),
+                  ],
 
-                  // Draggable blocks
+                  // Blocks (draggable)
                   ...board.blocks.map((b) {
                     final off = blockOffset(b);
-                    final width = (b.orientation == Orientation2D.h ? b.length : 1) * cellSize;
-                    final height = (b.orientation == Orientation2D.v ? b.length : 1) * cellSize;
+                    final w = (b.orientation == Orientation2D.h ? b.length : 1) * cellSize;
+                    final h = (b.orientation == Orientation2D.v ? b.length : 1) * cellSize;
 
                     return AnimatedPositioned(
                       key: ValueKey(b.id),
@@ -118,16 +126,10 @@ class _BoardViewState extends ConsumerState<BoardView> {
                       curve: Curves.easeInOut,
                       left: off.dx,
                       top: off.dy,
-                      width: width,
-                      height: height,
+                      width: w,
+                      height: h,
                       child: GestureDetector(
-                        onPanStart: (_) {
-                          setState(() {
-                            _draggingId = b.id;
-                            _dragDx = 0;
-                            _dragDy = 0;
-                          });
-                        },
+                        onPanStart: (_) => setState(() { _draggingId = b.id; _dragDx = 0; _dragDy = 0; }),
                         onPanUpdate: (details) {
                           final pb = pixelBounds(b);
                           setState(() {
@@ -146,13 +148,8 @@ class _BoardViewState extends ConsumerState<BoardView> {
                     );
                   }).toList(),
 
-                  // Optional overlay when finished (visual feedback)
                   if (state.solved || state.failed)
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withOpacity(0.05),
-                      ),
-                    ),
+                    Positioned.fill(child: Container(color: Colors.black.withOpacity(0.05))),
                 ],
               ),
             ),
@@ -161,21 +158,35 @@ class _BoardViewState extends ConsumerState<BoardView> {
       },
     );
   }
+
+  int _firstTargetRow(board, {required int fallback}) {
+    final list = board.blocks.where((x) => x.isTarget && x.orientation == Orientation2D.h).toList();
+    if (list.isEmpty) return fallback;
+    return list.first.row;
+  }
+
+  Widget _rightMarker({required double height}) => Container(
+    width: 12, height: height,
+    decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(6)),
+  );
+
+  Widget _bottomMarker({required double width}) => Container(
+    width: width, height: 12,
+    decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(6)),
+  );
 }
 
 class _GridPainter extends CustomPainter {
   final int rows;
   final int cols;
-
   _GridPainter({required this.rows, required this.cols});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Simple subtle grid for aesthetics
     final paint = Paint()
       ..color = const Color(0xFFECEFF1)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6;
+      ..strokeWidth = 1;
 
     final cellW = size.width / cols;
     final cellH = size.height / rows;
