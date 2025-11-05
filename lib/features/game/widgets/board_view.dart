@@ -175,7 +175,7 @@ class _GridPainter extends CustomPainter {
     final paint = Paint()
       ..color = const Color(0xFFECEFF1)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeWidth = 6;
 
     final cellW = size.width / cols;
     final cellH = size.height / rows;
