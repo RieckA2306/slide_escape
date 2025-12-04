@@ -1,4 +1,3 @@
-import 'dart:ui'; // Required for ImageFilter
 import 'package:flutter/material.dart';
 import '../../domain/level.dart';
 import '../../domain/services/level_progress.dart'; // Import the progress service
@@ -10,76 +9,121 @@ class LevelMapScreen extends StatefulWidget {
   State<LevelMapScreen> createState() => _LevelMapScreenState();
 }
 
-class _LevelMapScreenState extends State<LevelMapScreen> {
+// Added AutomaticKeepAliveClientMixin to preserve state (scroll position)
+// when switching tabs (e.g., going to Shop and back).
+class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
   // Tracks the highest level the user has unlocked. Defaults to 1.
   int _highestUnlockedLevel = 1;
+  bool _initialScrollDone = false;
+
+  // Required by AutomaticKeepAliveClientMixin.
+  // Returning true ensures this widget is not destroyed when switching tabs.
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _loadProgress();
+    _loadProgress(initialLoad: true);
 
-    // Scroll down to the bottom after the first frame is rendered
-    // to show the starting levels (typically at the bottom of the map).
+    // Initial Scroll Fix:
+    // Wait for frames to ensure content height is calculated (images loaded).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      _attemptAutoScroll(isInitial: true);
+    });
+  }
+
+  /// Tries to scroll to the current level.
+  void _attemptAutoScroll({int retries = 0, bool isInitial = false}) {
+    if (!mounted) return;
+
+    // Check if controller is attached and we have a valid scrollable area
+    // (greater than 0 means images have loaded and expanded the view)
+    if (_scrollController.hasClients && _scrollController.position.maxScrollExtent > 0) {
+      // Only scroll if it's the first load OR if we explicitly want to (e.g. level change)
+      if (isInitial && !_initialScrollDone) {
+        _scrollToCurrentLevel();
+        _initialScrollDone = true;
       }
-    });
+    } else {
+      // Retry if content isn't ready
+      if (retries < 10) {
+        Future.delayed(const Duration(milliseconds: 300), () => _attemptAutoScroll(retries: retries + 1, isInitial: isInitial));
+      }
+    }
   }
 
-  /// Loads the saved progress from SharedPreferences via the service.
-  Future<void> _loadProgress() async {
+  /// Loads the saved progress.
+  Future<void> _loadProgress({bool initialLoad = false}) async {
     final highest = await LevelProgress.getHighestUnlockedLevel();
-    setState(() {
-      _highestUnlockedLevel = highest;
-    });
+    if (mounted) {
+      final bool hasChanged = highest != _highestUnlockedLevel;
+
+      setState(() {
+        _highestUnlockedLevel = highest;
+      });
+
+      // If the level changed (e.g. came back from winning a game),
+      // we want to scroll to the new position.
+      // We do NOT want to scroll if nothing changed (e.g. just refreshing).
+      if (hasChanged && !initialLoad && _scrollController.hasClients) {
+        // Small delay to let the UI update (unlock animation maybe?) before scrolling
+        Future.delayed(const Duration(milliseconds: 100), _scrollToCurrentLevel);
+      }
+    }
   }
 
-  /// Resets the progress back to Level 1 (For testing purposes).
+  /// Calculates the approximate scroll position based on the highest unlocked level.
+  void _scrollToCurrentLevel() {
+    if (!_scrollController.hasClients) return;
+
+    final double maxScroll = _scrollController.position.maxScrollExtent;
+    double targetOffset = maxScroll; // Default to bottom (Level 1)
+
+    // Rough estimation logic remains the same
+    if (_highestUnlockedLevel >= 15) {
+      targetOffset = 0; // Top
+    } else if (_highestUnlockedLevel >= 13) {
+      targetOffset = maxScroll * 0.25;
+    } else if (_highestUnlockedLevel >= 11) {
+      targetOffset = maxScroll * 0.50;
+    } else if (_highestUnlockedLevel >= 9) {
+      targetOffset = maxScroll * 0.75;
+    } else {
+      targetOffset = maxScroll; // Bottom
+    }
+
+    _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic
+    );
+  }
+
   Future<void> _resetProgress() async {
-    // Reset by "unlocking" level 0 (logic depends on service,
-    // but usually we might need a clear method.
-    // Here we act as if we just reset local state and maybe overwrite).
-    // Since the service only "increases" level, let's manually assume
-    // we would clear prefs. For now, we simulate a reset or
-    // allow the service to be extended.
-    // Ideally, LevelProgress would have a clear method.
-    // For this snippet, I will just set the state to 1.
-    // Real implementation: await SharedPreferences.getInstance()..clear();
-
-    // Using a quick hack to force reset via the Service if possible,
-    // or just assume we modify the SharedPreferences directly here for the test button.
-    // Importing SharedPreferences just for this test button:
-    // import 'package:shared_preferences/shared_preferences.dart';
-    // But since I shouldn't add imports not in the file block if I can avoid it,
-    // I will assume LevelProgress has a reset or I just set local state to 1.
-    // To be cleaner, let's just set local state to 1 and note that a restart might be needed
-    // if the service doesn't support clearing.
-
-    // UPDATE: To make it work persistently for you to test:
-    // I'll add a temporary direct reset if the service allows,
-    // or just pretend for the UI session.
-    // If you want a real reset, you'd add `static Future<void> reset() ...` to LevelProgress.
-
     setState(() {
       _highestUnlockedLevel = 1;
     });
-
-    // Note: This only resets the UI for this session unless we actually clear Prefs.
-    // Assuming you implemented LevelProgress, adding a reset there is best.
+    // Scroll back to bottom after reset
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut
+      );
+    }
   }
 
-  /// Called when returning from the game screen to update unlocked levels.
   void _refreshProgress() {
     _loadProgress();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Define the level configuration
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
+
     final levels = [
       Level(id: 1, type: LevelType.normal, size: 6, targetIds: const [],),
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
@@ -103,7 +147,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        // Top header with status bars and settings
+        // Top header
         SliverAppBar(
           pinned: true,
           expandedHeight: 65,
@@ -402,29 +446,30 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // 1. Level Background Node
-            // If locked, we apply a blur effect to this specific widget
-            isLocked
-                ? ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3), // Blur effect
-              child: Image.asset(
-                "assets/level_background/normal_level_background.png",
-                width: 63,
-                height: 63,
-              ),
-            )
-                : Image.asset(
+            // 1. Level Background Node (Always clean image)
+            Image.asset(
               "assets/level_background/normal_level_background.png",
               width: 63,
               height: 63,
             ),
 
-            // 2. Level Content (Number OR Lock Icon)
+            // 2. Gray Overlay (Only if locked)
+            if (isLocked)
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.25), // Gray transparent
+                ),
+              ),
+
+            // 3. Content: Lock Icon OR Level Number
             if (isLocked)
             // Show Lock Icon if locked
               Image.asset(
                 "assets/Lock/Lock.png", // Ensure this asset exists
-                width: 60,
+                width: 60, // Reduced size slightly so it fits nicely inside the node
                 height: 60,
                 fit: BoxFit.contain,
               )
