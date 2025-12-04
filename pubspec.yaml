@@ -41,6 +41,7 @@ flutter:
     - assets/app_footer/map.png
     - assets/app_footer/shop.png
     - assets/app_bar/profile_pictures/star.png
+    - assets/Lock/Lock.png
 
     # ✅ Add game-level JSONs for Unblock Me board
     - assets/levels/
