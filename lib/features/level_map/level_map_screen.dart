@@ -151,12 +151,41 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
       Level(id: 9, type: LevelType.boss, size: 6, targetIds: const [], difficulty: "boss",),
       Level(id: 10, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 11, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 12, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 13, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 14, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 15, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 16, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 17, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 18, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 19, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 20, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 21, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 22, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 23, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 24, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 25, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 26, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 27, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 28, type: LevelType.normal, size: 6, targetIds: [1]),
       Level(id: 29, type: LevelType.normal, size: 6, targetIds: [1]),
-      Level(id: 28, type: LevelType.normal, size: 6, targetIds: [1]),
-      Level(id: 29, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 30, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 31, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 32, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 33, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 34, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 35, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 36, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 37, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 38, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 39, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 40, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 41, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 42, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 43, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 44, type: LevelType.normal, size: 6, targetIds: [1]),
+      Level(id: 45, type: LevelType.normal, size: 6, targetIds: [1]),
+
     ];
 
     return CustomScrollView(
@@ -355,51 +384,79 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
         ),
 
 
-        // Section with Level 21 & 29
+        // Section with Level 37 to 45
         SliverToBoxAdapter(
           child: _buildMapSection(
             context,
             children: [
-              _buildLevel(204, 558, levels[15]),
-              _buildLevel(122, 518, levels[16]),
+              _buildLevel(204, 558, levels[36]),
+              _buildLevel(122, 518, levels[37]),
+              _buildLevel(256, 438, levels[38]),
+              _buildLevel(125, 373, levels[39]),
+              _buildLevel(231, 287, levels[40]),
+              _buildLevel(118, 207, levels[41]),
+              _buildLevel(238, 140, levels[42]),
+              _buildLevel(129, 45, levels[43]),
+              _buildLevel(256, 8, levels[44]),
             ],
           ),
         ),
 
-        // Section with Level 21 & 29
+        // Section with Level 28 to 36
         SliverToBoxAdapter(
           child: _buildMapSection(
             context,
             children: [
-              _buildLevel(204, 558, levels[13]),
-              _buildLevel(122, 518, levels[14]),
+              _buildLevel(204, 558, levels[27]),
+              _buildLevel(122, 518, levels[28]),
+              _buildLevel(256, 438, levels[29]),
+              _buildLevel(125, 373, levels[30]),
+              _buildLevel(231, 287, levels[31]),
+              _buildLevel(118, 207, levels[32]),
+              _buildLevel(238, 140, levels[33]),
+              _buildLevel(129, 45, levels[34]),
+              _buildLevel(256, 8, levels[35]),
             ],
           ),
         ),
 
-        // Section with Level 19 & 20
+        // Section with Level 19 to 27
         SliverToBoxAdapter(
           child: _buildMapSection(
             context,
             children: [
-              _buildLevel(204, 558, levels[11]),
-              _buildLevel(122, 518, levels[12]),
+              _buildLevel(204, 558, levels[18]),
+              _buildLevel(122, 518, levels[19]),
+              _buildLevel(256, 438, levels[20]),
+              _buildLevel(125, 373, levels[21]),
+              _buildLevel(231, 287, levels[22]),
+              _buildLevel(118, 207, levels[23]),
+              _buildLevel(238, 140, levels[24]),
+              _buildLevel(129, 45, levels[25]),
+              _buildLevel(256, 8, levels[26]),
             ],
           ),
         ),
 
-        // Section with Level 10 & 11
+        // Section with Level 10 to 18
         SliverToBoxAdapter(
           child: _buildMapSection(
             context,
             children: [
               _buildLevel(204, 558, levels[9]),
               _buildLevel(122, 518, levels[10]),
+              _buildLevel(256, 438, levels[11]),
+              _buildLevel(125, 373, levels[12]),
+              _buildLevel(231, 287, levels[13]),
+              _buildLevel(118, 207, levels[14]),
+              _buildLevel(238, 140, levels[15]),
+              _buildLevel(129, 45, levels[16]),
+              _buildLevel(256, 8, levels[17]),
             ],
           ),
         ),
 
-        // Section with Level 1 & 2
+        // Section with Level 1 to 9
         SliverToBoxAdapter(
           child: _buildMapSection(
             context,
@@ -484,8 +541,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
             // Show Lock Icon if locked
               Image.asset(
                 "assets/Lock/Lock.png", // Ensure this asset exists
-                width: 30, // Reduced size slightly so it fits nicely inside the node
-                height: 30,
+                width: 60, // Reduced size slightly so it fits nicely inside the node
+                height: 60,
                 fit: BoxFit.contain,
               )
             else
