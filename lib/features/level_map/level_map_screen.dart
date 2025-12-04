@@ -124,6 +124,21 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
 
+    // --- PLAYER XP LOGIC ---
+    // Calculate player stats based on unlocked levels
+    // Each completed level gives 0.334 XP.
+    // Completed levels = highestUnlockedLevel - 1 (since unlocked starts at 1)
+    final int completedLevels = _highestUnlockedLevel - 1;
+    final double xpPerLevel = 0.334;
+    final double totalXp = completedLevels * xpPerLevel;
+
+    // Player level starts at 1 and increases every time totalXp crosses an integer threshold
+    final int playerLevel = 1 + totalXp.floor();
+
+    // Progress bar fills up from 0.0 to 1.0 based on the decimal part of totalXp
+    // Use modulo 1 to get the fractional part, clamp just to be safe visually
+    final double barProgress = (totalXp % 1.0).clamp(0.0, 1.0);
+
     final levels = [
       Level(id: 1, type: LevelType.normal, size: 6, targetIds: const [],),
       Level(id: 2, type: LevelType.normal, size: 6, targetIds: [1]),
@@ -182,12 +197,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                               height: 14,
                               color: const Color(0xFFF6EBF6), // track/bg color (HEX)
                               child: Stack(
-                                children: const [
+                                children: [
                                   // fill (0.0..1.0)
                                   FractionallySizedBox(
-                                    widthFactor: 0.30,
-                                    heightFactor: 1.0,               // take full bar height (important!)
-                                    child: ColoredBox(
+                                    widthFactor: barProgress, // Dynamic Width
+                                    heightFactor: 1.0,        // take full bar height (important!)
+                                    child: const ColoredBox(
                                       color: Color(0xFFE3B94E), // fill color (HEX)
                                     ),
                                   ),
@@ -210,7 +225,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                                 height: 65,
                               ),
                               Text(
-                                "$_highestUnlockedLevel", // Display current max level
+                                "$playerLevel", // Display Player Level
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 20,
@@ -469,8 +484,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
             // Show Lock Icon if locked
               Image.asset(
                 "assets/Lock/Lock.png", // Ensure this asset exists
-                width: 60, // Reduced size slightly so it fits nicely inside the node
-                height: 60,
+                width: 30, // Reduced size slightly so it fits nicely inside the node
+                height: 30,
                 fit: BoxFit.contain,
               )
             else
