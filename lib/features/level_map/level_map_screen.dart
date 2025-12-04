@@ -1,3 +1,4 @@
+import 'dart:async'; // Required for the timer
 import 'package:flutter/material.dart';
 import '../../domain/level.dart';
 import '../../domain/services/level_progress.dart'; // Import the progress service
@@ -18,6 +19,11 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   int _highestUnlockedLevel = 1;
   bool _initialScrollDone = false;
 
+  // --- GOLD & TIMER STATE ---
+  int _currentGold = 10;
+  Timer? _regenTimer;
+  int _secondsUntilNextGold = 0;
+
   // Required by AutomaticKeepAliveClientMixin.
   // Returning true ensures this widget is not destroyed when switching tabs.
   @override
@@ -28,11 +34,70 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     super.initState();
     _loadProgress(initialLoad: true);
 
+    // Load initial gold status and start timer if needed
+    _loadGoldStatus();
+
     // Initial Scroll Fix:
     // Wait for frames to ensure content height is calculated (images loaded).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _attemptAutoScroll(isInitial: true);
     });
+  }
+
+  @override
+  void dispose() {
+    // Cancel the timer to prevent memory leaks
+    _regenTimer?.cancel();
+    super.dispose();
+  }
+
+  // --- GOLD LOGIC METHODS ---
+
+  Future<void> _loadGoldStatus() async {
+    final status = await LevelProgress.getGoldStatus();
+    if (!mounted) return;
+
+    setState(() {
+      _currentGold = status['gold'];
+      _secondsUntilNextGold = status['secondsRemaining'];
+    });
+
+    // If gold is not full, start the visual countdown timer
+    if (_currentGold < 10 && (_regenTimer == null || !_regenTimer!.isActive)) {
+      _startRegenTimer();
+    }
+  }
+
+  void _startRegenTimer() {
+    _regenTimer?.cancel();
+    _regenTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      setState(() {
+        if (_secondsUntilNextGold > 0) {
+          _secondsUntilNextGold--;
+        } else {
+          // Timer finished, reload gold status from service to update count
+          _loadGoldStatus();
+        }
+      });
+
+      // Stop timer if gold is full
+      if (_currentGold >= 10) {
+        timer.cancel();
+      }
+    });
+  }
+
+  // Formats seconds into MM:SS string
+  String get _timerString {
+    if (_currentGold >= 10) return "";
+    final minutes = (_secondsUntilNextGold / 60).floor();
+    final seconds = _secondsUntilNextGold % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
   /// Tries to scroll to the current level.
@@ -102,22 +167,47 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
-  Future<void> _resetProgress() async {
-    setState(() {
-      _highestUnlockedLevel = 1;
-    });
-    // Scroll back to bottom after reset
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut
-      );
-    }
+  // --- DEBUG FUNCTION ---
+  Future<void> _debugAddGold() async {
+    await LevelProgress.debugAddGold(5);
+    _loadGoldStatus(); // Refresh UI immediately
   }
 
   void _refreshProgress() {
     _loadProgress();
+    _loadGoldStatus(); // Refresh gold when returning from a game
+  }
+
+  // Logic to handle level tapping
+  Future<void> _onLevelTap(Level level) async {
+    // Check if level is locked
+    if (level.id > _highestUnlockedLevel) return;
+
+    // Check and consume gold
+    bool success = await LevelProgress.consumeGold();
+
+    if (success) {
+      // Update UI immediately
+      await _loadGoldStatus();
+
+      if (!mounted) return;
+
+      // Navigate to game
+      await Navigator.pushNamed(context, "/game", arguments: level);
+
+      // Refresh progress upon return
+      _refreshProgress();
+    } else {
+      // Show error if not enough gold
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Nicht genug Gold! Warte auf Regeneration."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -323,9 +413,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.black26),
                             ),
-                            child: const Text(
-                              "10",
-                              style: TextStyle(
+                            child: Text(
+                              "$_currentGold", // Updated to dynamic gold variable
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: Colors.black,
@@ -347,6 +437,26 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                   ),
                 ),
 
+                // ===== TIMER DISPLAY (INDEPENDENT POSITION) =====
+                // Only show if gold is not full
+                if (_currentGold < 10)
+                  Positioned(
+                    // ADJUST POSITION HERE:
+                    // Use 'top' and 'right' to position it exactly where you want relative to the corner.
+                    // 'right' is preferred over 'left' here since the Gold bar is right-aligned.
+                    top: 43,
+                    right: 78,
+                      child: Text(
+                        _timerString,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+
                 // Settings icon
                 Positioned(
                   right: 10,
@@ -361,19 +471,18 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                   ),
                 ),
 
-                // TEST BUTTON: Reset Progress
-                // Positioned top-left (or near settings) to easily reset progress
+                // TEST BUTTON: Add 5 Gold (Replaced Reset Button)
                 Positioned(
                   right: 10,
-                  top: 50, // Below settings
+                  top: 80, // Below settings
                   child: GestureDetector(
-                    onTap: _resetProgress,
+                    onTap: _debugAddGold,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      color: Colors.red.withOpacity(0.8),
+                      color: Colors.blue.withOpacity(0.8), // Blue for Add
                       child: const Text(
-                        "RESET",
-                        style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                        "+5 GOLD",
+                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -509,11 +618,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
           // Prevent opening locked levels
           if (isLocked) return;
 
-          // Navigate to the Game Screen
-          await Navigator.pushNamed(context, "/game", arguments: level);
-
-          // Refresh progress upon return (in case level was completed)
-          _refreshProgress();
+          // Call the gold check logic instead of navigating directly
+          _onLevelTap(level);
         },
         child: Stack(
           alignment: Alignment.center,
