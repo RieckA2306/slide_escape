@@ -1,7 +1,7 @@
 import 'dart:async'; // Required for the timer
 import 'package:flutter/material.dart';
-import '../../../domain/level.dart';
-import '../../../domain/services/level_progress.dart'; // Import the progress service
+import '../../../domain/entities/level.dart';
+import '../../../data/levels/level_progress.dart'; // Import the progress service
 
 class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});

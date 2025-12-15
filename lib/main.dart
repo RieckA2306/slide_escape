@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'features/home/home_screen.dart';
 import 'features/game/game_screen.dart';
-import 'domain/level.dart';
+import 'domain/entities/level.dart';
 
 void main() {
   runApp(const SlideEscapeApp());

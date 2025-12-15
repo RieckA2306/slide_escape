@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/level.dart';
+import '../../domain/entities/level.dart';
 import '../../data/levels/level_repository.dart';
 import '../../domain/entities/board.dart';
 import '../../domain/services/rules.dart';
-import '../../domain/services/level_progress.dart'; // NEW: Service for saving level progress
+import '../../data/levels/level_progress.dart'; // NEW: Service for saving level progress
 
 import 'controller/game_controller.dart';
 import 'widgets/board_view.dart';

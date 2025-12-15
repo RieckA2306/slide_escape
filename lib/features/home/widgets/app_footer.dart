@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Enum für die Tabs im Footer
+/// Enum for the Tabs in Footer
 enum FooterTab { shop, map, leaderboard }
 
 class AppFooter extends StatelessWidget {
@@ -15,8 +15,8 @@ class AppFooter extends StatelessWidget {
     super.key,
     required this.activeTab,
     required this.onTabSelected,
-    this.backgroundColor = const Color(0xFFF1CCE6),      // Weiß  #F7B4E3
-    this.activeBackgroundColor = const Color(0xFFF1AADC) // Rot standard
+    this.backgroundColor = const Color(0xFFF1CCE6),
+    this.activeBackgroundColor = const Color(0xFFF1AADC)
   });
 
   @override
@@ -36,7 +36,7 @@ class AppFooter extends StatelessWidget {
   }
 
 
-  /// Baut einen einzelnen Tab-Button
+  /// Builds a single Tab-Button
   Widget _buildTab(String label, String assetPath, FooterTab tab) {
     final isActive = activeTab == tab;
 
