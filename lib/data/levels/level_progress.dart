@@ -104,14 +104,34 @@ class LevelProgress {
 
   /// Debug function: Adds gold directly (capped at maxGold).
   static Future<void> debugAddGold(int amount) async {
+
+    // Diagnosis 1: Check if the function is called
+    print("--- DEBUG: debugAddGold wurde gestartet (Betrag: $amount) ---");
+
     final prefs = await SharedPreferences.getInstance();
+
+    // Ensure the gold status is consistent before adding
+    // This calls getGoldStatus and forces a cleanup if necessary.
+    await getGoldStatus();
+
     int currentGold = prefs.getInt(_goldKey) ?? 10;
 
-    currentGold += amount;
-    if (currentGold > maxGold) {
-      currentGold = maxGold;
+    int newGold = currentGold + amount;
+
+    // The Limit of 10 is respected
+    if (newGold > maxGold) {
+      newGold = maxGold;
     }
 
-    await prefs.setInt(_goldKey, currentGold);
+    // saves the new value
+    await prefs.setInt(_goldKey, newGold);
+
+    // If gold is at its max the regeneration needs to be stopped!!!
+    if (newGold == maxGold) {
+      await prefs.remove(_timestampKey);
+    }
+
+    // Diagnosis 2: Shows the result
+    print("--- DEBUG: Gold wurde von $currentGold auf $newGold gespeichert ---");
   }
 }

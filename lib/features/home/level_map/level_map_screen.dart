@@ -1,7 +1,7 @@
 import 'dart:async'; // Required for the timer
 import 'package:flutter/material.dart';
 
-// --- Imports an deine neue Struktur angepasst ---
+// --- Imports adapted to your structure ---
 import '../../../domain/entities/level.dart';
 // The Import for our shared-prefernces and Goldtimer
 import '../../../data/levels/level_progress.dart';
@@ -205,10 +205,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     final int playerLevel = 1 + totalXp.floor();
     final double barProgress = (totalXp % 1.0).clamp(0.0, 1.0);
 
-    //Wrap the CustomScrollView in a Stack to allow the Settings Overlay to sit on top
+    // Wrap the CustomScrollView in a Stack to allow the Settings Overlay and the Debug Button to sit on top
     return Stack(
       children: [
-        // LAYER 0: The Main Map Content
+        // LAYER 0: The Main Map Content (CustomScrollView)
         CustomScrollView(
           controller: _scrollController,
           slivers: [
@@ -371,34 +371,16 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                         ),
                       ),
 
-                    // Settings icon
+                    // Settings icon (Top: 4)
                     Positioned(
                       right: 10,
                       top: 4,
                       child: GestureDetector(
-                        // NEW: Added toggle function
                         onTap: _toggleSettings,
                         child: Image.asset(
                           "assets/app_bar/settings.png",
                           width: 55,
                           height: 55,
-                        ),
-                      ),
-                    ),
-
-                    // TEST BUTTON
-                    Positioned(
-                      right: 10,
-                      top: 70,
-                      child: GestureDetector(
-                        onTap: _debugAddGold,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          color: Colors.blue.withValues(alpha: 0.8),
-                          child: const Text(
-                            "+5 GOLD",
-                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
                         ),
                       ),
                     ),
@@ -408,7 +390,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
             ),
 
             // --- MAP SECTIONS ---
-
             // Section with Level 37 to 45
             SliverToBoxAdapter(
               child: _buildMapSection(
@@ -501,25 +482,40 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
           ],
         ),
 
-        // LAYER 1 - Settings Overlay
-        // Only visible when _showSettings is true
+        // LAYER 1:  BUTTON for Gold one layer up. This was nessecary due to a bug where the button did´nt reacted to a click.
+        Positioned(
+          right: 10,
+          top: 130,
+          child: GestureDetector(
+            onTap: _debugAddGold,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              color: Colors.blue.withValues(alpha: 0.8),
+              child: const Text(
+                "+5 GOLD",
+                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+
+
+        // LAYER 2: Settings Overlay
         if (_showSettings)
           Positioned.fill(
             child: Stack(
               children: [
                 // 1.1 The Barrier (Transparent carpet)
-                // Tapping anywhere here closes the settings
                 GestureDetector(
                   onTap: _toggleSettings,
                   child: Container(
-                    color: Colors.transparent, // Or use .withValues(alpha: ...) for dimming
+                    color: Colors.transparent,
                   ),
                 ),
 
                 // 1.2 The Settings Dialog
-                Center(
-                  child: SettingsScreen(
-                  ),
+                const Center(
+                  child: SettingsScreen(),
                 ),
               ],
             ),
@@ -544,7 +540,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
-  //Level Node
   Widget _buildLevel(double left, double top, Level level) {
     final bool isLocked = level.id > _highestUnlockedLevel;
 
