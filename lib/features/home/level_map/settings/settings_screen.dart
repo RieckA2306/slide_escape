@@ -1,40 +1,40 @@
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final double width;
-  final double height;
+  // change these values to resize the box.
+  final double width = 300;
+  final double height = 300;
 
-  const SettingsScreen({
-    super.key,
-    this.width = 300,  // Standardbreite
-    this.height = 400, // Standardhöhe
-  });
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Ein einfaches weißes Rechteck mit abgerundeten Ecken
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20), // Abgerundete Ecken
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2), // Leichter Schatten für 3D-Effekt
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: const Center(
-        child: Text(
-          "Settings",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-            decoration: TextDecoration.none, // Wichtig bei Overlays ohne Material-Widget
+    // We wrap everything in a Material widget to ensure standard font rendering.
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              // Using with Values for newer Flutter versions (prevents deprecation warnings)
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text(
+            "Settings",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
         ),
       ),

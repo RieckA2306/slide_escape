@@ -519,8 +519,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                 // 1.2 The Settings Dialog
                 Center(
                   child: SettingsScreen(
-                    width: 300,
-                    height: 250,
                   ),
                 ),
               ],

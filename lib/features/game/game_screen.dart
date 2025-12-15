@@ -199,7 +199,7 @@ class _GameScaffold extends ConsumerWidget {
         LevelProgress.unlockLevel(level.id);
 
         // ADDED DELAY: Wait 0.2 seconds (200ms) for better UX
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 250));
 
         // Show dialog after the short pause
         showWin(next.history.length);
