@@ -8,6 +8,9 @@ import '../../../data/levels/level_progress.dart';
 // The Import for the Definitions-Document:
 import '../../../data/levels/level_definitions.dart';
 
+//Import for the Settings Screen
+import 'settings/settings_screen.dart';
+
 class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});
 
@@ -21,6 +24,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   // Tracks the highest level the user has unlocked. Defaults to 1.
   int _highestUnlockedLevel = 1;
   bool _initialScrollDone = false;
+
+  // State to control the visibility of the settings overlay
+  bool _showSettings = false;
 
   // --- GOLD & TIMER STATE ---
   int _currentGold = 10;
@@ -46,6 +52,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   void dispose() {
     _regenTimer?.cancel();
     super.dispose();
+  }
+
+  // Toggles the settings overlay on or off
+  void _toggleSettings() {
+    setState(() {
+      _showSettings = !_showSettings;
+    });
   }
 
   // --- GOLD LOGIC METHODS ---
@@ -192,295 +205,327 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     final int playerLevel = 1 + totalXp.floor();
     final double barProgress = (totalXp % 1.0).clamp(0.0, 1.0);
 
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          expandedHeight: 65,
-          collapsedHeight: 65,
-          backgroundColor: const Color(0xFFF1CCE6),
-          flexibleSpace: SafeArea(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // ===== Level + Progress =====
-                Positioned(
-                  left: 10,
-                  top: 0,
-                  child: SizedBox(
-                    width: 155,
-                    height: 65,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: 57,
-                          top: 25,
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
+    //Wrap the CustomScrollView in a Stack to allow the Settings Overlay to sit on top
+    return Stack(
+      children: [
+        // LAYER 0: The Main Map Content
+        CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              expandedHeight: 65,
+              collapsedHeight: 65,
+              backgroundColor: const Color(0xFFF1CCE6),
+              flexibleSpace: SafeArea(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // ===== Level + Progress =====
+                    Positioned(
+                      left: 10,
+                      top: 0,
+                      child: SizedBox(
+                        width: 155,
+                        height: 65,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned(
+                              left: 57,
+                              top: 25,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                child: Container(
+                                  width: 90,
+                                  height: 14,
+                                  color: const Color(0xFFF6EBF6),
+                                  child: Stack(
+                                    children: [
+                                      FractionallySizedBox(
+                                        widthFactor: barProgress,
+                                        heightFactor: 1.0,
+                                        child: const ColoredBox(
+                                          color: Color(0xFFE3B94E),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: Container(
-                              width: 90,
-                              height: 14,
-                              color: const Color(0xFFF6EBF6),
+                            Align(
+                              alignment: Alignment.centerLeft,
                               child: Stack(
+                                alignment: Alignment.center,
                                 children: [
-                                  FractionallySizedBox(
-                                    widthFactor: barProgress,
-                                    heightFactor: 1.0,
-                                    child: const ColoredBox(
-                                      color: Color(0xFFE3B94E),
+                                  const Image(
+                                    image: AssetImage("assets/app_bar/level_background.png"),
+                                    width: 65,
+                                    height: 65,
+                                  ),
+                                  Text(
+                                    "$playerLevel",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 3,
+                                          color: Colors.black54,
+                                          offset: Offset(1, 1),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              const Image(
-                                image: AssetImage("assets/app_bar/level_background.png"),
-                                width: 65,
-                                height: 65,
-                              ),
-                              Text(
-                                "$playerLevel",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 3,
-                                      color: Colors.black54,
-                                      offset: Offset(1, 1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
 
-                // Frame image + Star
-                Positioned(
-                  left: 161,
-                  bottom: -20,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/app_bar/profile_pictures/star.png",
-                        width: 60,
-                        height: 60,
-                      ),
-                      Image.asset(
-                        "assets/app_bar/frames/frame2.png",
-                        width: 90,
-                        height: 90,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Gold + value
-                Positioned(
-                  right: 48,
-                  top: 5,
-                  child: SizedBox(
-                    width: 120,
-                    height: 53,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: 30,
-                          top: 14,
-                          child: Container(
-                            width: 70,
-                            height: 25,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF6EBF6),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.black26),
-                            ),
-                            child: Text(
-                              "$_currentGold",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Image.asset(
-                            "assets/app_bar/goldbar.png",
+                    // Frame image + Star
+                    Positioned(
+                      left: 161,
+                      bottom: -20,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/app_bar/profile_pictures/star.png",
                             width: 60,
                             height: 60,
                           ),
+                          Image.asset(
+                            "assets/app_bar/frames/frame2.png",
+                            width: 90,
+                            height: 90,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Gold + value
+                    Positioned(
+                      right: 48,
+                      top: 5,
+                      child: SizedBox(
+                        width: 120,
+                        height: 53,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned(
+                              left: 30,
+                              top: 14,
+                              child: Container(
+                                width: 70,
+                                height: 25,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF6EBF6),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.black26),
+                                ),
+                                child: Text(
+                                  "$_currentGold",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Image.asset(
+                                "assets/app_bar/goldbar.png",
+                                width: 60,
+                                height: 60,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
+
+                    // TIMER
+                    if (_currentGold < 10)
+                      Positioned(
+                        top: 43,
+                        right: 78,
+                        child: Text(
+                          _timerString,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                    // Settings icon
+                    Positioned(
+                      right: 10,
+                      top: 4,
+                      child: GestureDetector(
+                        // NEW: Added toggle function
+                        onTap: _toggleSettings,
+                        child: Image.asset(
+                          "assets/app_bar/settings.png",
+                          width: 55,
+                          height: 55,
+                        ),
+                      ),
+                    ),
+
+                    // TEST BUTTON
+                    Positioned(
+                      right: 10,
+                      top: 70,
+                      child: GestureDetector(
+                        onTap: _debugAddGold,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          color: Colors.blue.withValues(alpha: 0.8),
+                          child: const Text(
+                            "+5 GOLD",
+                            style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // --- MAP SECTIONS ---
+
+            // Section with Level 37 to 45
+            SliverToBoxAdapter(
+              child: _buildMapSection(
+                context,
+                children: [
+                  _buildLevel(204, 558, LevelDefinitions.getLevelById(37)),
+                  _buildLevel(122, 518, LevelDefinitions.getLevelById(38)),
+                  _buildLevel(256, 438, LevelDefinitions.getLevelById(39)),
+                  _buildLevel(125, 373, LevelDefinitions.getLevelById(40)),
+                  _buildLevel(231, 287, LevelDefinitions.getLevelById(41)),
+                  _buildLevel(118, 207, LevelDefinitions.getLevelById(42)),
+                  _buildLevel(238, 140, LevelDefinitions.getLevelById(43)),
+                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(44)),
+                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(45)),
+                ],
+              ),
+            ),
+
+            // Section with Level 28 to 36
+            SliverToBoxAdapter(
+              child: _buildMapSection(
+                context,
+                children: [
+                  _buildLevel(204, 558, LevelDefinitions.getLevelById(28)),
+                  _buildLevel(122, 518, LevelDefinitions.getLevelById(29)),
+                  _buildLevel(256, 438, LevelDefinitions.getLevelById(30)),
+                  _buildLevel(125, 373, LevelDefinitions.getLevelById(31)),
+                  _buildLevel(231, 287, LevelDefinitions.getLevelById(32)),
+                  _buildLevel(118, 207, LevelDefinitions.getLevelById(33)),
+                  _buildLevel(238, 140, LevelDefinitions.getLevelById(34)),
+                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(35)),
+                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(36)),
+                ],
+              ),
+            ),
+
+            // Section with Level 19 to 27
+            SliverToBoxAdapter(
+              child: _buildMapSection(
+                context,
+                children: [
+                  _buildLevel(204, 558, LevelDefinitions.getLevelById(19)),
+                  _buildLevel(122, 518, LevelDefinitions.getLevelById(20)),
+                  _buildLevel(256, 438, LevelDefinitions.getLevelById(21)),
+                  _buildLevel(125, 373, LevelDefinitions.getLevelById(22)),
+                  _buildLevel(231, 287, LevelDefinitions.getLevelById(23)),
+                  _buildLevel(118, 207, LevelDefinitions.getLevelById(24)),
+                  _buildLevel(238, 140, LevelDefinitions.getLevelById(25)),
+                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(26)),
+                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(27)),
+                ],
+              ),
+            ),
+
+            // Section with Level 10 to 18
+            SliverToBoxAdapter(
+              child: _buildMapSection(
+                context,
+                children: [
+                  _buildLevel(204, 558, LevelDefinitions.getLevelById(10)),
+                  _buildLevel(122, 518, LevelDefinitions.getLevelById(11)),
+                  _buildLevel(256, 438, LevelDefinitions.getLevelById(12)),
+                  _buildLevel(125, 373, LevelDefinitions.getLevelById(13)),
+                  _buildLevel(231, 287, LevelDefinitions.getLevelById(14)),
+                  _buildLevel(118, 207, LevelDefinitions.getLevelById(15)),
+                  _buildLevel(238, 140, LevelDefinitions.getLevelById(16)),
+                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(17)),
+                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(18)),
+                ],
+              ),
+            ),
+
+            // Section with Level 1 to 9
+            SliverToBoxAdapter(
+              child: _buildMapSection(
+                context,
+                children: [
+                  _buildLevel(204, 558, LevelDefinitions.getLevelById(1)),
+                  _buildLevel(122, 518, LevelDefinitions.getLevelById(2)),
+                  _buildLevel(256, 438, LevelDefinitions.getLevelById(3)),
+                  _buildLevel(125, 373, LevelDefinitions.getLevelById(4)),
+                  _buildLevel(231, 287, LevelDefinitions.getLevelById(5)),
+                  _buildLevel(118, 207, LevelDefinitions.getLevelById(6)),
+                  _buildLevel(238, 140, LevelDefinitions.getLevelById(7)),
+                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(8)),
+                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(9)),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // LAYER 1 - Settings Overlay
+        // Only visible when _showSettings is true
+        if (_showSettings)
+          Positioned.fill(
+            child: Stack(
+              children: [
+                // 1.1 The Barrier (Transparent carpet)
+                // Tapping anywhere here closes the settings
+                GestureDetector(
+                  onTap: _toggleSettings,
+                  child: Container(
+                    color: Colors.transparent, // Or use .withValues(alpha: ...) for dimming
                   ),
                 ),
 
-                // TIMER
-                if (_currentGold < 10)
-                  Positioned(
-                    top: 43,
-                    right: 78,
-                    child: Text(
-                      _timerString,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                // Settings icon
-                Positioned(
-                  right: 10,
-                  top: 4,
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Image.asset(
-                      "assets/app_bar/settings.png",
-                      width: 55,
-                      height: 55,
-                    ),
-                  ),
-                ),
-
-                // TEST BUTTON
-                Positioned(
-                  right: 10,
-                  top: 70,
-                  child: GestureDetector(
-                    onTap: _debugAddGold,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      color: Colors.blue.withOpacity(0.8),
-                      child: const Text(
-                        "+5 GOLD",
-                        style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                // 1.2 The Settings Dialog
+                Center(
+                  child: SettingsScreen(
+                    width: 300,
+                    height: 250,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-
-        // --- MAP SECTIONS ---
-        // Hier nutzen wir jetzt LevelDefinitions.getLevelById(ID)
-
-        // Section with Level 37 to 45
-        SliverToBoxAdapter(
-          child: _buildMapSection(
-            context,
-            children: [
-              _buildLevel(204, 558, LevelDefinitions.getLevelById(37)),
-              _buildLevel(122, 518, LevelDefinitions.getLevelById(38)),
-              _buildLevel(256, 438, LevelDefinitions.getLevelById(39)),
-              _buildLevel(125, 373, LevelDefinitions.getLevelById(40)),
-              _buildLevel(231, 287, LevelDefinitions.getLevelById(41)),
-              _buildLevel(118, 207, LevelDefinitions.getLevelById(42)),
-              _buildLevel(238, 140, LevelDefinitions.getLevelById(43)),
-              _buildLevel(129, 45,  LevelDefinitions.getLevelById(44)),
-              _buildLevel(256, 8,   LevelDefinitions.getLevelById(45)),
-            ],
-          ),
-        ),
-
-        // Section with Level 28 to 36
-        SliverToBoxAdapter(
-          child: _buildMapSection(
-            context,
-            children: [
-              _buildLevel(204, 558, LevelDefinitions.getLevelById(28)),
-              _buildLevel(122, 518, LevelDefinitions.getLevelById(29)),
-              _buildLevel(256, 438, LevelDefinitions.getLevelById(30)),
-              _buildLevel(125, 373, LevelDefinitions.getLevelById(31)),
-              _buildLevel(231, 287, LevelDefinitions.getLevelById(32)),
-              _buildLevel(118, 207, LevelDefinitions.getLevelById(33)),
-              _buildLevel(238, 140, LevelDefinitions.getLevelById(34)),
-              _buildLevel(129, 45,  LevelDefinitions.getLevelById(35)),
-              _buildLevel(256, 8,   LevelDefinitions.getLevelById(36)),
-            ],
-          ),
-        ),
-
-        // Section with Level 19 to 27
-        SliverToBoxAdapter(
-          child: _buildMapSection(
-            context,
-            children: [
-              _buildLevel(204, 558, LevelDefinitions.getLevelById(19)),
-              _buildLevel(122, 518, LevelDefinitions.getLevelById(20)),
-              _buildLevel(256, 438, LevelDefinitions.getLevelById(21)),
-              _buildLevel(125, 373, LevelDefinitions.getLevelById(22)),
-              _buildLevel(231, 287, LevelDefinitions.getLevelById(23)),
-              _buildLevel(118, 207, LevelDefinitions.getLevelById(24)),
-              _buildLevel(238, 140, LevelDefinitions.getLevelById(25)),
-              _buildLevel(129, 45,  LevelDefinitions.getLevelById(26)),
-              _buildLevel(256, 8,   LevelDefinitions.getLevelById(27)),
-            ],
-          ),
-        ),
-
-        // Section with Level 10 to 18
-        SliverToBoxAdapter(
-          child: _buildMapSection(
-            context,
-            children: [
-              _buildLevel(204, 558, LevelDefinitions.getLevelById(10)),
-              _buildLevel(122, 518, LevelDefinitions.getLevelById(11)),
-              _buildLevel(256, 438, LevelDefinitions.getLevelById(12)),
-              _buildLevel(125, 373, LevelDefinitions.getLevelById(13)),
-              _buildLevel(231, 287, LevelDefinitions.getLevelById(14)),
-              _buildLevel(118, 207, LevelDefinitions.getLevelById(15)),
-              _buildLevel(238, 140, LevelDefinitions.getLevelById(16)),
-              _buildLevel(129, 45,  LevelDefinitions.getLevelById(17)),
-              _buildLevel(256, 8,   LevelDefinitions.getLevelById(18)),
-            ],
-          ),
-        ),
-
-        // Section with Level 1 to 9
-        SliverToBoxAdapter(
-          child: _buildMapSection(
-            context,
-            children: [
-              _buildLevel(204, 558, LevelDefinitions.getLevelById(1)),
-              _buildLevel(122, 518, LevelDefinitions.getLevelById(2)),
-              _buildLevel(256, 438, LevelDefinitions.getLevelById(3)),
-              _buildLevel(125, 373, LevelDefinitions.getLevelById(4)),
-              _buildLevel(231, 287, LevelDefinitions.getLevelById(5)),
-              _buildLevel(118, 207, LevelDefinitions.getLevelById(6)),
-              _buildLevel(238, 140, LevelDefinitions.getLevelById(7)),
-              _buildLevel(129, 45,  LevelDefinitions.getLevelById(8)),
-              _buildLevel(256, 8,   LevelDefinitions.getLevelById(9)),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -501,6 +546,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
+  //Level Node
   Widget _buildLevel(double left, double top, Level level) {
     final bool isLocked = level.id > _highestUnlockedLevel;
 
@@ -526,7 +572,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                 height: 58,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                 ),
               ),
             if (isLocked)
