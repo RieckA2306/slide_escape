@@ -186,7 +186,14 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Nicht genug Gold! Warte auf Regeneration."),
+          content: Text(
+            "Not enough Gold! Wait for regeneration.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
