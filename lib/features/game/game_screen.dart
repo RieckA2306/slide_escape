@@ -5,7 +5,7 @@ import '../../domain/entities/level.dart';
 import '../../data/levels/level_repository.dart';
 import '../../domain/entities/board.dart';
 import '../../domain/services/rules.dart';
-import '../../data/levels/level_progress.dart'; // NEW: Service for saving level progress
+import '../../data/levels/level_progress.dart';
 
 import 'controller/game_controller.dart';
 import 'widgets/board_view.dart';
@@ -31,7 +31,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   late String _assetPath;
 
   // Constants defining the exit point for the 'Boss' block.
-  // Row 3, Col 3 corresponds to the 4th row and 4th column (0-indexed).
   static const bossExitRow = 3;
   static const bossExitCol = 3;
 
@@ -40,22 +39,25 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     super.initState();
     _repo = LevelRepository();
 
-    // Construct the asset path based on the level ID (e.g., level_001.json)
+    // Construct the asset path based on the level ID
     _assetPath =
     'assets/levels/level_${widget.level.id.toString().padLeft(3, '0')}.json';
 
-    // Start loading the board configuration asynchronously
     _boardFuture = _repo.load(_assetPath);
   }
 
   /// Shows the victory dialog when the level is solved.
   void _showWinDialog(int moves) {
+    // SAFETY CHECK: Ensure the widget is still on screen before showing the dialog.
+    // This is important because of the 0.2s delay.
+    if (!mounted) return;
+
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent closing by clicking outside
       builder: (_) => WinDialog(
         moves: moves,
         onNext: () {
-          // Logic to navigate to the next level or return to map
           Navigator.of(context).pop();
         },
       ),
@@ -68,10 +70,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     required VoidCallback onRestart,
     required FailReason reason,
   }) {
+    if (!mounted) return;
+
     final reasonText =
     reason == FailReason.timeUp ? "Time's up" : "Out of moves";
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => FailDialog(
         title: reasonText,
         moves: moves,
@@ -91,7 +96,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Wait for the level data (JSON) to be loaded and parsed into a Board object
     return FutureBuilder<Board>(
       future: _boardFuture,
       builder: (context, snap) {
@@ -112,7 +116,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // 3. Success State: Data is ready
         final initialBoard = snap.data!;
 
-        // Determine constraints based on the Level metadata (Move Limit vs Time Limit)
         final int? moveLimit = (widget.level.type == LevelType.moveLimit)
             ? widget.level.moveLimit
             : null;
@@ -120,20 +123,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ? widget.level.timeLimit
             : null;
 
-        // Check if this is a Boss Level to apply special win conditions
         final isBoss = widget.level.type == LevelType.boss;
 
-        // Select the appropriate win condition function
-        // Boss levels require the block to reach a specific exit coordinate.
-        // Normal levels usually just require the target block to reach the edge.
         final winCheck = isBoss
             ? (Board b) =>
             Rules.isSolvedBoss(b, exitRow: bossExitRow, exitCol: bossExitCol)
             : Rules.isSolved;
 
-        // Initialize the GameController for this specific level using ProviderScope.
-        // This creates a scoped instance of the provider, ensuring state is reset
-        // when entering a new level.
         return ProviderScope(
           overrides: [
             gameControllerProvider.overrideWith(
@@ -161,8 +157,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-/// The internal scaffold that builds the UI (AppBar, HUD, Board).
-/// It listens to the [gameControllerProvider] to react to state changes.
+/// The internal scaffold that builds the UI.
+/// Optimized to react immediately to state changes using ref.listen.
 class _GameScaffold extends ConsumerWidget {
   final Level level;
   final Board initialBoard;
@@ -191,25 +187,29 @@ class _GameScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch current game state (e.g., solved, failed, moves count)
     final state = ref.watch(gameControllerProvider);
-    // Read controller for actions (restart, etc.)
     final controller = ref.read(gameControllerProvider.notifier);
 
-    // Handle side effects (Win/Loss Dialogs) after the frame renders.
-    // This prevents triggering state changes during the build phase.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.solved) {
-        // --- ACTION: Save Progress ---
-        // Unlocks the next level in Shared Preferences
+    // We make the callback 'async' to use 'await Future.delayed'
+    ref.listen<GameState>(gameControllerProvider, (previous, next) async {
+      // 1. Check Win Condition
+      if (!(previous?.solved ?? false) && next.solved) {
+
+        // Save in background immediately
         LevelProgress.unlockLevel(level.id);
 
-        showWin(state.history.length);
-      } else if (state.failed && state.failReason != null) {
+        // ADDED DELAY: Wait 0.2 seconds (200ms) for better UX
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // Show dialog after the short pause
+        showWin(next.history.length);
+      }
+      // 2. Check Fail Condition
+      else if (!(previous?.failed ?? false) && next.failed && next.failReason != null) {
         showFail(
-          moves: state.history.length,
+          moves: next.history.length,
           onRestart: () => controller.restart(initialBoard),
-          reason: state.failReason!,
+          reason: next.failReason!,
         );
       }
     });
@@ -218,14 +218,12 @@ class _GameScaffold extends ConsumerWidget {
       appBar: AppBar(
         title: Text('Level ${level.id} • ${level.difficulty}'),
         actions: [
-          // Display Move Limit if active
           if (state.moveLimit != null)
             Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
                 )),
-          // Display Time Limit if active
           if (state.timeLimit != null)
             Center(
                 child: Padding(
@@ -238,12 +236,10 @@ class _GameScaffold extends ConsumerWidget {
         children: [
           const SizedBox(height: 8),
 
-          // HUD: Heads-up display for controls (Undo, Reset, etc.)
           GameHud(onRestart: () => controller.restart(initialBoard)),
 
           const SizedBox(height: 8),
 
-          // Main Game Board Area
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12.0),

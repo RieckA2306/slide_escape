@@ -1,4 +1,4 @@
-/* import '../../domain/entities/level.dart';
+import '../../domain/entities/level.dart';
 
 /// This class holds all static data regarding the levels.
 /// It serves as a central database for level configurations.
@@ -62,4 +62,4 @@ class LevelDefinitions {
     );
   }
 }
-*/
+
