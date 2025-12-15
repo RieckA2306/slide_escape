@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../shop/shop_screen.dart';
-import '../level_map/level_map_screen.dart';
-import '../leaderboard/leaderboard_screen.dart';
+import '../home/shop/shop_screen.dart';
+import '../home/level_map/level_map_screen.dart';
+import '../home/leaderboard/leaderboard_screen.dart';
 import '../../widgets/app_footer.dart';
 
 class HomeScreen extends StatefulWidget {

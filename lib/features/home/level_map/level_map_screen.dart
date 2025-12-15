@@ -1,7 +1,7 @@
 import 'dart:async'; // Required for the timer
 import 'package:flutter/material.dart';
-import '../../domain/level.dart';
-import '../../domain/services/level_progress.dart'; // Import the progress service
+import '../../../domain/level.dart';
+import '../../../domain/services/level_progress.dart'; // Import the progress service
 
 class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});
@@ -474,7 +474,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                 // TEST BUTTON: Add 5 Gold (Replaced Reset Button)
                 Positioned(
                   right: 10,
-                  top: 80, // Below settings
+                  top: 70, // Below settings
                   child: GestureDetector(
                     onTap: _debugAddGold,
                     child: Container(
