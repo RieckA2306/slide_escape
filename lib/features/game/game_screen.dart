@@ -15,12 +15,15 @@ import 'widgets/fail_dialog.dart';
 
 /// The main screen where the gameplay happens.
 ///
+/// This widget acts as the "orchestrator" for a single game session.
+///
 /// Responsibilities:
-/// 1. Load level data (JSON) asynchronously.
-/// 2. Initialize the GameController with specific level constraints.
-/// 3. Wire up the UI (Board, HUD) with the State.
-/// 4. Listen for Game Events (Win/Loss) to show dialogs.
+/// 1. Data Loading: Fetches the level configuration (JSON) asynchronously.
+/// 2. Dependency Injection: Initializes the [GameController] with the loaded board and level rules.
+/// 3. UI Composition: Builds the visual hierarchy (Background, AppBar, HUD, Game Board).
+/// 4. Event Listening: Monitors the game state for Win/Loss conditions to trigger dialogs.
 class GameScreen extends ConsumerStatefulWidget {
+  /// The level metadata (ID, difficulty, type) passed from the map screen.
   final Level level;
 
   const GameScreen({super.key, required this.level});
@@ -31,10 +34,14 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   late final LevelRepository _repo;
+
+  /// A Future that will hold the initial state of the game board.
   late Future<Board> _boardFuture;
+
   late String _assetPath;
 
   // Constants defining the exit point for the 'Boss' block (Target block).
+  // In Boss levels, the target might need to reach a specific cell (e.g., row 3, col 3).
   static const bossExitRow = 3;
   static const bossExitCol = 3;
 
@@ -44,7 +51,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _repo = LevelRepository();
 
     // Construct the asset path dynamically based on the level ID.
-    // E.g., ID 5 becomes "assets/levels/level_005.json"
+    // Example: ID 5 becomes "assets/levels/level_005.json"
     _assetPath =
     'assets/levels/level_${widget.level.id.toString().padLeft(3, '0')}.json';
 
@@ -53,27 +60,27 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _boardFuture = _repo.load(_assetPath);
   }
 
-  /// Displays the "You Won" dialog.
+  /// Displays the "You Won" dialog overlay.
   void _showWinDialog(int moves) {
-    // SAFETY CHECK: Before showing a dialog, check if the widget is still on screen.
-    // Since we have an async delay (await Future.delayed), the user might have
-    // pressed "Back" in the meantime. Trying to show a dialog on a closed screen causes a crash.
+    // SAFETY CHECK: Before showing a dialog, check if the widget is still mounted (on screen).
+    // Since we have an async delay (await Future.delayed) before calling this, the user might
+    // have pressed "Back" in the meantime. Trying to show a dialog on a closed screen causes a crash.
     if (!mounted) return;
 
     showDialog(
       context: context,
-      barrierDismissible: false, // User must click a button to close
+      barrierDismissible: false, // Prevents closing by clicking outside the dialog.
       builder: (_) => WinDialog(
         moves: moves,
         onNext: () {
-          // Close the dialog and go back to the map
+          // Close the dialog and navigate back to the level map.
           Navigator.of(context).pop();
         },
       ),
     );
   }
 
-  /// Displays the "Game Over" dialog.
+  /// Displays the "Game Over" dialog overlay.
   void _showFailDialog({
     required int moves,
     required VoidCallback onRestart,
@@ -96,7 +103,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  /// Helper to format seconds into MM:SS (e.g., 65s -> "01:05").
+  /// Helper function to format seconds into a "MM:SS" string.
+  /// Example: 65 seconds -> "01:05".
   String _fmtTime(int? secs) {
     if (secs == null) return '--:--';
     final m = secs ~/ 60;
@@ -106,15 +114,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // FutureBuilder handles the 3 states of data loading:
-    // 1. Loading (Spinner)
-    // 2. Error (Text)
-    // 3. Success (The actual Game)
+    // FutureBuilder handles the 3 states of asynchronous data loading:
+    // 1. Loading (Waiting for JSON) -> Shows Spinner
+    // 2. Error (File not found / Invalid JSON) -> Shows Error Text
+    // 3. Success (Data ready) -> Builds the Game UI
     return FutureBuilder<Board>(
       future: _boardFuture,
       builder: (context, snap) {
         // State 1: Loading
         if (snap.connectionState != ConnectionState.done) {
+          // We use a Scaffold here to ensure the spinner is shown on a proper background.
           return const Scaffold(
               body: Center(child: CircularProgressIndicator()));
         }
@@ -127,10 +136,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           );
         }
 
-        // State 3: Success - Data is ready to use
+        // State 3: Success - Data is available
         final initialBoard = snap.data!;
 
-        // Determine limits based on level type
+        // Determine specific level constraints based on the LevelType.
         final int? moveLimit = (widget.level.type == LevelType.moveLimit)
             ? widget.level.moveLimit
             : null;
@@ -140,7 +149,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
         final isBoss = widget.level.type == LevelType.boss;
 
-        // Define the victory condition (Normal vs. Boss)
+        // Define the victory condition dynamically.
+        // - Normal levels: Standard "Target reaches exit" logic.
+        // - Boss levels: Custom "Boss reaches specific cell" logic.
         final winCheck = isBoss
             ? (Board b) =>
             Rules.isSolvedBoss(b, exitRow: bossExitRow, exitCol: bossExitCol)
@@ -148,8 +159,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
         // CRITICAL RIVERPOD PATTERN:
         // We wrap the game UI in a ProviderScope.
-        // This allows us to "Override" the generic gameControllerProvider with
-        // a specific instance that knows about THIS level's board and rules.
+        // This allows us to "Override" the generic [gameControllerProvider] with
+        // a specific instance that knows about THIS level's loaded board and rules.
+        // This is dependency injection in action.
         return ProviderScope(
           overrides: [
             gameControllerProvider.overrideWith(
@@ -177,19 +189,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-/// The internal UI structure.
-/// Separated into its own widget so it can access the overridden ProviderScope above.
+/// The internal UI structure of the game.
+///
+/// It is separated into its own widget so it can access the [gameControllerProvider]
+/// that was overridden in the parent [ProviderScope].
 class _GameScaffold extends ConsumerWidget {
   final Level level;
   final Board initialBoard;
 
-  // Callbacks passed down from the parent to keep logic clean
+  // Callbacks passed down from the parent to separate logic from UI building.
   final void Function(int moves) showWin;
   final void Function({
   required int moves,
   required VoidCallback onRestart,
   required FailReason reason,
   }) showFail;
+
   final String Function(int? secs) fmtTime;
 
   final bool isBoss;
@@ -209,20 +224,20 @@ class _GameScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch for UI updates (rebuilds the widget when state changes)
+    // Watch for UI updates: Rebuilds this widget whenever the game state changes (e.g., move made).
     final state = ref.watch(gameControllerProvider);
-    // Read the controller to call methods (like restart)
+    // Read the controller: Used to trigger actions (like restart) without watching state.
     final controller = ref.read(gameControllerProvider.notifier);
 
     // EVENT LISTENER:
-    // 'ref.listen' is used for one-time effects (side effects) like showing dialogs.
-    // It does NOT rebuild the UI, it just triggers the code block when state changes.
+    // 'ref.listen' is used for side effects. It does NOT rebuild the UI.
+    // It triggers only when the state changes significantly (e.g., solved changes from false to true).
     ref.listen<GameState>(gameControllerProvider, (previous, next) async {
 
-      // 1. Check Win Condition: Was not solved before, but is solved now?
+      // 1. Check Win Condition: Was not solved before, but IS solved now?
       if (!(previous?.solved ?? false) && next.solved) {
 
-        // Persistence: Save progress immediately
+        // Persistence: Save progress immediately so it counts even if the app crashes.
         LevelProgress.unlockLevel(level.id);
 
         // UX DELAY: Wait 250ms so the user sees the block hitting the goal
@@ -232,7 +247,7 @@ class _GameScaffold extends ConsumerWidget {
         showWin(next.history.length);
       }
 
-      // 2. Check Fail Condition: Was not failed before, but is failed now?
+      // 2. Check Fail Condition: Was not failed before, but IS failed now?
       else if (!(previous?.failed ?? false) && next.failed && next.failReason != null) {
         showFail(
           moves: next.history.length,
@@ -242,52 +257,75 @@ class _GameScaffold extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Level ${level.id} • ${level.difficulty}'),
-        actions: [
-          // Show Move Counter if limit exists
-          if (state.moveLimit != null)
-            Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
-                )),
-          // Show Timer if limit exists
-          if (state.timeLimit != null)
-            Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('⏱ ${fmtTime(state.timeLeft)}'),
-                )),
-        ],
-      ),
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
-
-          // HUD: Contains Undo/Redo/Restart buttons
-          GameHud(onRestart: () => controller.restart(initialBoard)),
-
-          const SizedBox(height: 8),
-
-          // THE BOARD: The main interactive area
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: BoardView(
-                  bossMode: isBoss,
-                  bossExitRow: bossExitRow,
-                  bossExitCol: bossExitCol,
-                ),
-              ),
+    // MAIN UI LAYOUT:
+    // We use a Stack to layer the Background Image behind the Game Interface.
+    return Stack(
+      children: [
+        // LAYER 0: The Background Image
+        // It covers the entire screen space.
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/game_background/game_background.png"),
+              fit: BoxFit.cover, // Ensures the image fills the screen without distortion
             ),
           ),
-          const SizedBox(height: 8),
-        ],
-      ),
+        ),
+
+        // LAYER 1: The Game Interface
+        // We use a transparent Scaffold so the background image shows through.
+        Scaffold(
+          backgroundColor: Colors.transparent, // Crucial: Make Scaffold transparent
+          appBar: AppBar(
+            // Make AppBar semi-transparent or fully transparent to blend with the background
+            backgroundColor: Colors.white.withValues(alpha: 0.5),
+            title: Text('Level ${level.id} • ${level.difficulty}'),
+            actions: [
+              // Show Move Counter if a limit exists for this level
+              if (state.moveLimit != null)
+                Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
+                    )),
+              // Show Timer if a limit exists for this level
+              if (state.timeLimit != null)
+                Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('⏱ ${fmtTime(state.timeLeft)}'),
+                    )),
+            ],
+          ),
+          body: Column(
+            children: [
+              const SizedBox(height: 8),
+
+              // HUD: Contains Undo/Redo/Restart buttons
+              GameHud(onRestart: () => controller.restart(initialBoard)),
+
+              const SizedBox(height: 8),
+
+              // THE BOARD: The main interactive area
+              // Expanded ensures it takes up the remaining available space.
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BoardView(
+                      bossMode: isBoss,
+                      bossExitRow: bossExitRow,
+                      bossExitCol: bossExitCol,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
