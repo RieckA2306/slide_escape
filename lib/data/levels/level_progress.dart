@@ -3,28 +3,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LevelProgress {
   static const _key = 'highest_unlocked_level';
 
-  // New keys for gold system
+  // Keys for gold system
   static const _goldKey = 'player_gold';
   static const _timestampKey = 'gold_last_update_timestamp';
 
   static const int maxGold = 10;
   static const int regenDurationMinutes = 15;
 
-  /// Lädt das höchste freigeschaltete Level (Standard ist 1)
+  /// Loads the highest unlocked level (Start is 1)
   static Future<int> getHighestUnlockedLevel() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_key) ?? 1;
   }
 
-  /// Schaltet das nächste Level frei, falls es noch nicht offen ist
+  /// Unlocks the next level
   static Future<void> unlockLevel(int completedLevelId) async {
     final prefs = await SharedPreferences.getInstance();
     final currentHighest = prefs.getInt(_key) ?? 1;
 
-    // Wir schalten das nächste Level frei (completed + 1)
+    // We unlcok the next level (completed + 1)
     final nextLevel = completedLevelId + 1;
 
-    // Nur speichern, wenn wir einen neuen Rekord erreicht haben
+    // Save only if we completed the highest unlocked level
     if (nextLevel > currentHighest) {
       await prefs.setInt(_key, nextLevel);
     }
@@ -102,6 +102,7 @@ class LevelProgress {
     return false;
   }
 
+  //This is for the blue button that adds +5 Gold
   /// Debug function: Adds gold directly (capped at maxGold).
   static Future<void> debugAddGold(int amount) async {
 

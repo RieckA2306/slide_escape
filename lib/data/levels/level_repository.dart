@@ -1,3 +1,8 @@
+/*CREATED BY CHATGPT
+The code iterates through the json file and creates a block-objekt for every entry
+Before those informationa are handed over it validates that there is a traget,
+that all the blocks are in bounds and the blocks don´t overlap
+*/
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../../domain/entities/block.dart';
