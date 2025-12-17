@@ -5,32 +5,44 @@ import '../controller/game_controller.dart';
 class GameHud extends ConsumerWidget {
   final VoidCallback onRestart;
 
-  // Anpassungs-Parameter
-  final Color buttonColor;          // Hintergrundfarbe Restart
-  final Color activeUndoRedoColor;  // Hintergrundfarbe Undo/Redo (wenn aktiv)
+  // Farben
+  final Color buttonColor;
+  final Color activeUndoRedoColor;
+  final Color textColor;
+  final Color buttonTextColor;
 
-  // NEU: Text-Anpassungen
-  final Color textColor;            // Farbe für den Text (Moves)
-  final Color buttonTextColor;      // Farbe für Text IN den Buttons
-
-  final double fontSize;            // Basis-Schriftgröße (für Buttons)
-  final double movesFontSize;       // Eigene Schriftgröße nur für "Moves"
-
+  // Schriftgrößen
+  final double fontSize;
+  final double movesFontSize;
   final FontWeight fontWeight;
+
+  // Layout & Dimensionen
   final double verticalOffset;
+  final double movesRightPadding; // NEU: Abstand von rechts
+
+  // Button Dimensionen (null = automatisch)
+  final double? undoRedoWidth;
+  final double? undoRedoHeight;
+  final double? restartWidth;
+  final double? restartHeight;
 
   const GameHud({
     super.key,
     required this.onRestart,
     this.buttonColor = Colors.blue,
     this.activeUndoRedoColor = Colors.blue,
-    // Standards setzen
     this.textColor = Colors.black87,
     this.buttonTextColor = Colors.black,
     this.fontSize = 16.0,
-    this.movesFontSize = 16.0, // Standardmäßig gleich groß wie der Rest
+    this.movesFontSize = 16.0,
     this.fontWeight = FontWeight.normal,
     this.verticalOffset = 0.0,
+    this.movesRightPadding = 0.0, // Standardwert
+    // Button Dimensionen
+    this.undoRedoWidth,
+    this.undoRedoHeight,
+    this.restartWidth,
+    this.restartHeight,
   });
 
   @override
@@ -41,28 +53,27 @@ class GameHud extends ConsumerWidget {
     final used = state.movesUsed;
     final limit = state.moveLimit;
 
-    // Style für die Buttons
+    // Style für Text innerhalb der Buttons
     final buttonTextStyle = TextStyle(
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: buttonTextColor,
     );
 
-    // Style speziell für den Moves-Text
+    // Style für die Moves-Anzeige
     final movesTextStyle = TextStyle(
-      fontSize: movesFontSize, // Hier nutzen wir die separate Größe
+      fontSize: movesFontSize,
       fontWeight: fontWeight,
-      color: textColor,        // Hier nutzen wir die separate Farbe
+      color: textColor,
     );
 
-    // Hilfsfunktion für den Style der Undo/Redo Buttons
+    // Style-Funktion für Undo/Redo
     ButtonStyle undoRedoStyle(bool enabled) {
       return FilledButton.styleFrom(
         textStyle: buttonTextStyle,
-        // Wenn aktiv -> Deine Wunschfarbe. Wenn inaktiv -> Standard (Transparent/Grau)
         backgroundColor: enabled ? activeUndoRedoColor : null,
-        // Textfarbe: Wenn enabled -> buttonTextColor, sonst System-Standard für disabled
         foregroundColor: enabled ? buttonTextColor : null,
+        padding: (undoRedoWidth != null) ? EdgeInsets.zero : null,
       );
     }
 
@@ -73,46 +84,73 @@ class GameHud extends ConsumerWidget {
       offset: Offset(0, verticalOffset),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Undo Button
-              FilledButton.tonal(
-                onPressed: canUndo ? controller.undo : null,
-                style: undoRedoStyle(canUndo),
-                child: const Text('Undo'),
-              ),
-              const SizedBox(width: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ZEILE 1: Buttons (Zentriert)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Undo Button
+                  SizedBox(
+                    width: undoRedoWidth,
+                    height: undoRedoHeight,
+                    child: FilledButton.tonal(
+                      onPressed: canUndo ? controller.undo : null,
+                      style: undoRedoStyle(canUndo),
+                      child: const Text('Undo'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
 
-              // Redo Button
-              FilledButton.tonal(
-                onPressed: canRedo ? controller.redo : null,
-                style: undoRedoStyle(canRedo),
-                child: const Text('Redo'),
-              ),
-              const SizedBox(width: 12),
+                  // Redo Button
+                  SizedBox(
+                    width: undoRedoWidth,
+                    height: undoRedoHeight,
+                    child: FilledButton.tonal(
+                      onPressed: canRedo ? controller.redo : null,
+                      style: undoRedoStyle(canRedo),
+                      child: const Text('Redo'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
 
-              // Restart Button
-              FilledButton(
-                onPressed: onRestart,
-                style: FilledButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  foregroundColor: buttonTextColor,
-                  textStyle: buttonTextStyle,
+                  // Restart Button
+                  SizedBox(
+                    width: restartWidth,
+                    height: restartHeight,
+                    child: FilledButton(
+                      onPressed: onRestart,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        foregroundColor: buttonTextColor,
+                        textStyle: buttonTextStyle,
+                        padding: (restartWidth != null) ? EdgeInsets.zero : null,
+                      ),
+                      child: const Text('Restart'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ZEILE 2: Moves Text (Rechtsbündig mit Padding)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: EdgeInsets.only(right: movesRightPadding), // HIER IST DEIN ABSTAND
+                child: Text(
+                  limit == null ? 'Moves: $used' : 'Moves: $used / $limit',
+                  style: movesTextStyle,
                 ),
-                child: const Text('Restart'),
               ),
-              const SizedBox(width: 24),
-
-              // Moves Text (Jetzt mit eigenem Style)
-              Text(
-                limit == null ? 'Moves: $used' : 'Moves: $used / $limit',
-                style: movesTextStyle,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

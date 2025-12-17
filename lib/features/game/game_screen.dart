@@ -361,18 +361,25 @@ class _GameScaffold extends ConsumerWidget {
                 // HUD: Contains Undo/Redo/Restart buttons
                 GameHud(
                   onRestart: () => controller.restart(initialBoard),
-                  buttonColor: const Color(0xFFF1CCE6), // Gold für Restart
-                  activeUndoRedoColor: const Color(0xFFF1CCE6), // Gold für Undo/Redo
+                  // --- DEINE HUD ANPASSUNGEN ---
+                  buttonColor: const Color(0xFFF1CCE6),
+                  activeUndoRedoColor: const Color(0xFFF1CCE6),
 
                   // Text Styles
-                  textColor: const Color(0xFF333333), // Dunkelgrau für "Moves"
-                  buttonTextColor: Colors.black, // Schwarz für Button-Text
+                  textColor: const Color(0xFF333333),
+                  buttonTextColor: Colors.black,
 
-                  fontSize: 16.0,          // Button Größe
-                  movesFontSize: 19.0,     // Moves size (bigger than Buttons!)
+                  fontSize: 17.0,
+                  movesFontSize: 19.0,
                   fontWeight: FontWeight.bold,
-
                   verticalOffset: 14.0,
+                  movesRightPadding: 17.0, // Distance to the right from Move Count
+
+                  // HNew Button Dimensions
+                  undoRedoWidth: 100.0,
+                  undoRedoHeight: 45.0,
+                  restartWidth: 160.0,
+                  restartHeight: 45.0,
                 ),
 
                 const SizedBox(height: 8),
