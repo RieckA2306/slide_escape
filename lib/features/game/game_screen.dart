@@ -72,15 +72,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       barrierDismissible: false, // Prevents closing by clicking outside the dialog.
       builder: (_) => WinDialog(
         moves: moves,
-        // HIER kannst du die Farbe und Transparenz einstellen
+        // BG color
         backgroundColor: Colors.white,
         opacity: 0.9,
-
-        // --- NEUE ANPASSUNGEN ---
         fontSize: 18.0,
-        // Dunkelgrauer Text
         textColor: const Color(0xFF333333),
-        // Gold/Orange Button
         buttonColor: const Color(0xFFFFC107),
 
         onNext: () {
@@ -108,7 +104,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       builder: (_) => FailDialog(
         title: reasonText,
         moves: moves,
-        onRestart: onRestart,
+        // Same Style as WinDialog
+        backgroundColor: Colors.white,
+        opacity: 0.9,
+        fontSize: 18.0,
+        textColor: const Color(0xFF333333),
+        buttonColor: const Color(0xFFFFC107),
+
         onExit: () => Navigator.of(context).maybePop(),
       ),
     );
@@ -251,7 +253,7 @@ class _GameScaffold extends ConsumerWidget {
 
         // UX DELAY: Wait 250ms so the user sees the block hitting the goal
         // before the dialog covers the screen.
-        await Future.delayed(const Duration(milliseconds: 250));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         showWin(next.history.length);
       }

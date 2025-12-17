@@ -40,7 +40,7 @@ class WinDialog extends StatelessWidget {
       title: Text(
         'Level Complete!',
         textAlign: TextAlign.center,
-        // Titel etwas größer als der Rest
+        // Titel a bit bigger than the rest
         style: textStyle.copyWith(fontWeight: FontWeight.bold, fontSize: fontSize * 1.2),
       ),
       content: Text(
@@ -55,12 +55,12 @@ class WinDialog extends StatelessWidget {
             onNext();
           },
           style: FilledButton.styleFrom(
-            backgroundColor: buttonColor, // Button-Farbe
+            backgroundColor: buttonColor, // You could overrite the buttoncolor here
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: Text(
             'Next Level',
-            // Button-Textgröße anpassen (Farbe bleibt meist weiß für Kontrast)
+            // You could overrite the fontsize here
             style: TextStyle(fontSize: fontSize),
           ),
         ),

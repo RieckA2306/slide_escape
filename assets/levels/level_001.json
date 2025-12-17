@@ -7,7 +7,7 @@
     { "id": "A", "row": 0, "col": 0, "length": 3, "orientation": "v" },
     { "id": "B", "row": 0, "col": 3, "length": 2, "orientation": "v" },
     { "id": "C", "row": 4, "col": 2, "length": 2, "orientation": "h" },
-    { "id": "D", "row": 1, "col": 5, "length": 3, "orientation": "v" }
+    { "id": "D", "row": 3, "col": 5, "length": 3, "orientation": "v" }
   ],
   "par": 2
 }
