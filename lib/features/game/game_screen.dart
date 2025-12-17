@@ -12,6 +12,7 @@ import 'widgets/board_view.dart';
 import 'widgets/hud.dart';
 import 'widgets/win_dialog.dart';
 import 'widgets/fail_dialog.dart';
+import 'widgets/exit_dialog.dart'; // NEU
 
 /// The main screen where the gameplay happens.
 ///
@@ -116,6 +117,31 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
+  /// Displays the Exit Confirmation Dialog
+  void _showExitDialog() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => ExitDialog(
+        // Styles wie bei den anderen Dialogen
+        backgroundColor: Colors.white,
+        opacity: 0.9,
+        fontSize: 18.0,
+        textColor: const Color(0xFF333333),
+        buttonColor: const Color(0xFFFFC107),
+
+        onKeepPlaying: () {
+          // KEEP EMPTY!!! The dialog is closing itself
+        },
+        onExit: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
+
   /// Helper function to format seconds into a "MM:SS" string.
   /// Example: 65 seconds -> "01:05".
   String _fmtTime(int? secs) {
@@ -191,6 +217,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             initialBoard: initialBoard,
             showWin: _showWinDialog,
             showFail: _showFailDialog,
+            onExitRequest: _showExitDialog, // NEU: Callback übergeben
             fmtTime: _fmtTime,
             isBoss: isBoss,
             bossExitRow: bossExitRow,
@@ -218,6 +245,9 @@ class _GameScaffold extends ConsumerWidget {
   required FailReason reason,
   }) showFail;
 
+  // Callback if Exit is pressed
+  final VoidCallback onExitRequest;
+
   final String Function(int? secs) fmtTime;
 
   final bool isBoss;
@@ -229,6 +259,7 @@ class _GameScaffold extends ConsumerWidget {
     required this.initialBoard,
     required this.showWin,
     required this.showFail,
+    required this.onExitRequest, // NEU
     required this.fmtTime,
     required this.isBoss,
     required this.bossExitRow,
@@ -270,80 +301,91 @@ class _GameScaffold extends ConsumerWidget {
       }
     });
 
-    // MAIN UI LAYOUT:
-    // We use a Stack to layer the Background Image behind the Game Interface.
-    return Stack(
-      children: [
-        // LAYER 0: The Background Image
-        // It covers the entire screen space.
-        Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("assets/game_background/game_background.png"),
-              fit: BoxFit
-                  .cover, // Ensures the image fills the screen without distortion
+    // NEU: PopScope intercepts the back button (top left)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        onExitRequest();
+      },
+      child: Stack(
+        children: [
+          // LAYER 0: The Background Image
+          // It covers the entire screen space.
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/game_background/game_background.png"),
+                fit: BoxFit
+                    .cover, // Ensures the image fills the screen without distortion
+              ),
             ),
           ),
-        ),
 
-        // LAYER 1: The Game Interface
-        // We use a transparent Scaffold so the background image shows through.
-        Scaffold(
-          backgroundColor:
-          Colors.transparent, // Crucial: Make Scaffold transparent
-          appBar: AppBar(
-            // Make AppBar semi-transparent or fully transparent to blend with the background
-            backgroundColor: Colors.white.withValues(alpha: 0.5),
-            title: Text('Level ${level.id} • ${level.difficulty}'),
-            actions: [
-              // Show Move Counter if a limit exists for this level
-              if (state.moveLimit != null)
-                Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
-                    )),
-              // Show Timer if a limit exists for this level
-              if (state.timeLimit != null)
-                Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('⏱ ${fmtTime(state.timeLeft)}'),
-                    )),
-            ],
-          ),
-          body: Column(
-            children: [
-              const SizedBox(height: 8),
+          // LAYER 1: The Game Interface
+          // We use a transparent Scaffold so the background image shows through.
+          Scaffold(
+            backgroundColor:
+            Colors.transparent, // Crucial: Make Scaffold transparent
+            appBar: AppBar(
+              // Make AppBar semi-transparent or fully transparent to blend with the background
+              backgroundColor: Colors.white.withValues(alpha: 0.5),
+              // NEU: Custom Leading Button für Exit Dialog
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: onExitRequest,
+              ),
+              title: Text('Level ${level.id} • ${level.difficulty}'),
+              actions: [
+                // Show Move Counter if a limit exists for this level
+                if (state.moveLimit != null)
+                  Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
+                      )),
+                // Show Timer if a limit exists for this level
+                if (state.timeLimit != null)
+                  Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('⏱ ${fmtTime(state.timeLeft)}'),
+                      )),
+              ],
+            ),
+            body: Column(
+              children: [
+                const SizedBox(height: 8),
 
-              // HUD: Contains Undo/Redo/Restart buttons
-              GameHud(onRestart: () => controller.restart(initialBoard)),
+                // HUD: Contains Undo/Redo/Restart buttons
+                GameHud(onRestart: () => controller.restart(initialBoard)),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              // THE BOARD: The main interactive area
-              // Expanded ensures it takes up the remaining available space.
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: BoardView(
-                      bossMode: isBoss,
-                      bossExitRow: bossExitRow,
-                      bossExitCol: bossExitCol,
-                      // Negative Value (E.g. -0.2) = Up
-                      // Positive Value (E.g. 0.2) = down
-                      verticalAlignment: -0.30,
+                // THE BOARD: The main interactive area
+                // Expanded ensures it takes up the remaining available space.
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BoardView(
+                        bossMode: isBoss,
+                        bossExitRow: bossExitRow,
+                        bossExitCol: bossExitCol,
+                        // Negative Value (E.g. -0.2) = Up
+                        // Positive Value (E.g. 0.2) = down
+                        verticalAlignment: -0.30,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
