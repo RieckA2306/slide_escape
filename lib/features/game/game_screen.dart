@@ -72,6 +72,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       barrierDismissible: false, // Prevents closing by clicking outside the dialog.
       builder: (_) => WinDialog(
         moves: moves,
+        // HIER kannst du die Farbe und Transparenz einstellen
+        backgroundColor: Colors.white,
+        opacity: 0.9,
+
+        // --- NEUE ANPASSUNGEN ---
+        fontSize: 18.0,
+        // Dunkelgrauer Text
+        textColor: const Color(0xFF333333),
+        // Gold/Orange Button
+        buttonColor: const Color(0xFFFFC107),
+
         onNext: () {
           // Close the dialog and navigate back to the level map.
           Navigator.of(context).pop();
