@@ -18,7 +18,7 @@ class GameHud extends ConsumerWidget {
 
   // Layout & Dimensionen
   final double verticalOffset;
-  final double movesRightPadding; // NEU: Abstand von rechts
+  // movesRightPadding wurde entfernt, da nicht mehr benötigt.
 
   // Button Dimensionen (null = automatisch)
   final double? undoRedoWidth;
@@ -37,7 +37,6 @@ class GameHud extends ConsumerWidget {
     this.movesFontSize = 16.0,
     this.fontWeight = FontWeight.normal,
     this.verticalOffset = 0.0,
-    this.movesRightPadding = 0.0, // Standardwert
     // Button Dimensionen
     this.undoRedoWidth,
     this.undoRedoHeight,
@@ -84,40 +83,42 @@ class GameHud extends ConsumerWidget {
       offset: Offset(0, verticalOffset),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ZEILE 1: Buttons (Zentriert)
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            // CrossAxisAlignment.start sorgt dafür, dass Undo/Redo oben bündig sind,
+            // falls die Restart-Spalte höher wird.
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Undo Button
+              SizedBox(
+                width: undoRedoWidth,
+                height: undoRedoHeight,
+                child: FilledButton.tonal(
+                  onPressed: canUndo ? controller.undo : null,
+                  style: undoRedoStyle(canUndo),
+                  child: const Text('Undo'),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // 2. Redo Button
+              SizedBox(
+                width: undoRedoWidth,
+                height: undoRedoHeight,
+                child: FilledButton.tonal(
+                  onPressed: canRedo ? controller.redo : null,
+                  style: undoRedoStyle(canRedo),
+                  child: const Text('Redo'),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // 3. Spalte: Restart Button OBEN, Moves Text UNTEN
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Undo Button
-                  SizedBox(
-                    width: undoRedoWidth,
-                    height: undoRedoHeight,
-                    child: FilledButton.tonal(
-                      onPressed: canUndo ? controller.undo : null,
-                      style: undoRedoStyle(canUndo),
-                      child: const Text('Undo'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Redo Button
-                  SizedBox(
-                    width: undoRedoWidth,
-                    height: undoRedoHeight,
-                    child: FilledButton.tonal(
-                      onPressed: canRedo ? controller.redo : null,
-                      style: undoRedoStyle(canRedo),
-                      child: const Text('Redo'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
                   // Restart Button
                   SizedBox(
                     width: restartWidth,
@@ -133,24 +134,18 @@ class GameHud extends ConsumerWidget {
                       child: const Text('Restart'),
                     ),
                   ),
+
+                  const SizedBox(height: 4), // Kleiner Abstand zwischen Button und Text
+
+                  // Moves Text (Automatisch zentriert unter Restart durch Column)
+                  Text(
+                    limit == null ? 'Moves: $used' : 'Moves: $used / $limit',
+                    style: movesTextStyle,
+                  ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // ZEILE 2: Moves Text (Rechtsbündig mit Padding)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.only(right: movesRightPadding), // HIER IST DEIN ABSTAND
-                child: Text(
-                  limit == null ? 'Moves: $used' : 'Moves: $used / $limit',
-                  style: movesTextStyle,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

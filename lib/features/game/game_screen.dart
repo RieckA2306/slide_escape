@@ -373,9 +373,8 @@ class _GameScaffold extends ConsumerWidget {
                   movesFontSize: 19.0,
                   fontWeight: FontWeight.bold,
                   verticalOffset: 14.0,
-                  movesRightPadding: 17.0, // Distance to the right from Move Count
 
-                  // HNew Button Dimensions
+                  // HIER SIND DIE NEUEN DIMENSIONEN
                   undoRedoWidth: 100.0,
                   undoRedoHeight: 45.0,
                   restartWidth: 160.0,
