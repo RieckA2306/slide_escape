@@ -11,12 +11,16 @@ class BoardView extends ConsumerStatefulWidget {
     this.bossMode = false,
     this.bossExitRow = 3, // 0-based: visual marker
     this.bossExitCol = 3, // 0-based: visual marker
+    this.verticalAlignment = 0.0, // Default to Center
   });
 
   /// When true, render two exit markers (right edge at row, bottom edge at col).
   final bool bossMode;
   final int bossExitRow;
   final int bossExitCol;
+
+  /// Controls vertical position: 0.0 is center, -1.0 is top, 1.0 is bottom.
+  final double verticalAlignment;
 
   @override
   ConsumerState<BoardView> createState() => _BoardViewState();
@@ -77,7 +81,9 @@ class _BoardViewState extends ConsumerState<BoardView> {
           setState(() { _draggingId = null; _dragDx = 0; _dragDy = 0; });
         }
 
-        return Center(
+        // Changed from Center to Align to allow Y-axis shifting
+        return Align(
+          alignment: Alignment(0.0, widget.verticalAlignment),
           child: SizedBox(
             width: size,
             height: size,

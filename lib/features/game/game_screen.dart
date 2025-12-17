@@ -233,10 +233,8 @@ class _GameScaffold extends ConsumerWidget {
     // 'ref.listen' is used for side effects. It does NOT rebuild the UI.
     // It triggers only when the state changes significantly (e.g., solved changes from false to true).
     ref.listen<GameState>(gameControllerProvider, (previous, next) async {
-
       // 1. Check Win Condition: Was not solved before, but IS solved now?
       if (!(previous?.solved ?? false) && next.solved) {
-
         // Persistence: Save progress immediately so it counts even if the app crashes.
         LevelProgress.unlockLevel(level.id);
 
@@ -248,7 +246,9 @@ class _GameScaffold extends ConsumerWidget {
       }
 
       // 2. Check Fail Condition: Was not failed before, but IS failed now?
-      else if (!(previous?.failed ?? false) && next.failed && next.failReason != null) {
+      else if (!(previous?.failed ?? false) &&
+          next.failed &&
+          next.failReason != null) {
         showFail(
           moves: next.history.length,
           onRestart: () => controller.restart(initialBoard),
@@ -267,7 +267,8 @@ class _GameScaffold extends ConsumerWidget {
           decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/game_background/game_background.png"),
-              fit: BoxFit.cover, // Ensures the image fills the screen without distortion
+              fit: BoxFit
+                  .cover, // Ensures the image fills the screen without distortion
             ),
           ),
         ),
@@ -275,7 +276,8 @@ class _GameScaffold extends ConsumerWidget {
         // LAYER 1: The Game Interface
         // We use a transparent Scaffold so the background image shows through.
         Scaffold(
-          backgroundColor: Colors.transparent, // Crucial: Make Scaffold transparent
+          backgroundColor:
+          Colors.transparent, // Crucial: Make Scaffold transparent
           appBar: AppBar(
             // Make AppBar semi-transparent or fully transparent to blend with the background
             backgroundColor: Colors.white.withValues(alpha: 0.5),
@@ -317,6 +319,9 @@ class _GameScaffold extends ConsumerWidget {
                       bossMode: isBoss,
                       bossExitRow: bossExitRow,
                       bossExitCol: bossExitCol,
+                      // Negative Value (E.g. -0.2) = Up
+                      // Positive Value (E.g. 0.2) = down
+                      verticalAlignment: -0.30,
                     ),
                   ),
                 ),
