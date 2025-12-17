@@ -78,7 +78,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         opacity: 0.9,
         fontSize: 18.0,
         textColor: const Color(0xFF333333),
-        buttonColor: const Color(0xFFFFC107),
+        buttonColor: const Color(0xFFF1CCE6),
 
         onNext: () {
           // Close the dialog and navigate back to the level map.
@@ -110,7 +110,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         opacity: 0.9,
         fontSize: 18.0,
         textColor: const Color(0xFF333333),
-        buttonColor: const Color(0xFFFFC107),
+        buttonColor: const Color(0xFFF1CCE6),
 
         onExit: () => Navigator.of(context).maybePop(),
       ),
@@ -130,7 +130,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         opacity: 0.9,
         fontSize: 18.0,
         textColor: const Color(0xFF333333),
-        buttonColor: const Color(0xFFFFC107),
+        buttonColor: const Color(0xFFF1CCE6),
 
         onKeepPlaying: () {
           // Leer lassen! Der Dialog schließt sich bereits selbst.
@@ -361,16 +361,18 @@ class _GameScaffold extends ConsumerWidget {
                 // HUD: Contains Undo/Redo/Restart buttons
                 GameHud(
                   onRestart: () => controller.restart(initialBoard),
-                  // --- DEINE HUD ANPASSUNGEN ---
-                  buttonColor: const Color(0xFFFFC107), // Gelb/Gold für Restart
+                  buttonColor: const Color(0xFFF1CCE6), // Gold für Restart
+                  activeUndoRedoColor: const Color(0xFFF1CCE6), // Gold für Undo/Redo
 
-                  // Farbe für Undo/Redo wenn aktiv.
-                  // Hier auch Gold, damit es einheitlich aussieht:
-                  activeUndoRedoColor: const Color(0xFFFFC107),
+                  // Text Styles
+                  textColor: const Color(0xFF333333), // Dunkelgrau für "Moves"
+                  buttonTextColor: Colors.black, // Schwarz für Button-Text
 
-                  fontSize: 16.0,
+                  fontSize: 16.0,          // Button Größe
+                  movesFontSize: 19.0,     // Moves size (bigger than Buttons!)
                   fontWeight: FontWeight.bold,
-                  verticalOffset: 0.0,
+
+                  verticalOffset: 14.0,
                 ),
 
                 const SizedBox(height: 8),
