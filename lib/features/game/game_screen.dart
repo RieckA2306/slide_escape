@@ -46,6 +46,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   static const bossExitRow = 3;
   static const bossExitCol = 3;
 
+  /// NEW: State variable to control navigation behavior.
+  /// If true, the PopScope will allow the screen to close immediately.
+  /// If false, the PopScope will block the exit and show the ExitDialog instead.
+  bool _forceExit = false;
+
   @override
   void initState() {
     super.initState();
@@ -112,7 +117,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         textColor: const Color(0xFF333333),
         buttonColor: const Color(0xFFF1CCE6),
 
-        onExit: () => Navigator.of(context).maybePop(),
+        onExit: () async {
+          // NEW: Handle the specific exit case from the FailDialog.
+          // The FailDialog itself is already popped inside its own onPressed method.
+
+          // 1. Update state to allow the PopScope to pass through.
+          setState(() {
+            _forceExit = true;
+          });
+
+          // 2. Wait a brief moment to ensure the state update propagates to the widget tree.
+          await Future.delayed(Duration.zero);
+
+          if (!mounted) return;
+
+          // 3. Close the GameScreen. Since _forceExit is true, PopScope allows this.
+          Navigator.of(context).pop();
+        },
       ),
     );
   }
@@ -137,6 +158,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         },
         onExit: () {
           // Nur 1x pop, um den GameScreen zu schließen.
+          // NEW: Also allow force exit here to avoid loop if triggered manually
+          setState(() {
+            _forceExit = true;
+          });
           Navigator.of(context).pop();
         },
       ),
@@ -193,8 +218,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // - Normal levels: Standard "Target reaches exit" logic.
         // - Boss levels: Custom "Boss reaches specific cell" logic.
         final winCheck = isBoss
-            ? (Board b) =>
-            Rules.isSolvedBoss(b, exitRow: bossExitRow, exitCol: bossExitCol)
+            ? (Board b) => Rules.isSolvedBoss(b,
+            exitRow: bossExitRow, exitCol: bossExitCol)
             : Rules.isSolved;
 
         // CRITICAL RIVERPOD PATTERN:
@@ -223,6 +248,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             isBoss: isBoss,
             bossExitRow: bossExitRow,
             bossExitCol: bossExitCol,
+            // NEW: Pass the permission to pop to the UI widget
+            allowPop: _forceExit,
           ),
         );
       },
@@ -255,6 +282,9 @@ class _GameScaffold extends ConsumerWidget {
   final int bossExitRow;
   final int bossExitCol;
 
+  // NEW: Received from parent state
+  final bool allowPop;
+
   const _GameScaffold({
     required this.level,
     required this.initialBoard,
@@ -265,6 +295,7 @@ class _GameScaffold extends ConsumerWidget {
     required this.isBoss,
     required this.bossExitRow,
     required this.bossExitCol,
+    required this.allowPop,
   });
 
   @override
@@ -304,7 +335,9 @@ class _GameScaffold extends ConsumerWidget {
 
     // NEU: PopScope intercepts the back button (top left)
     return PopScope(
-      canPop: false,
+      // NEW: If allowPop is true (set via FailDialog exit), we close immediately.
+      // If false, we intercept the back action and show the ExitDialog.
+      canPop: allowPop,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         onExitRequest();
