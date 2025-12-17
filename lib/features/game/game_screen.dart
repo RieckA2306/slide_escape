@@ -12,7 +12,7 @@ import 'widgets/board_view.dart';
 import 'widgets/hud.dart';
 import 'widgets/win_dialog.dart';
 import 'widgets/fail_dialog.dart';
-import 'widgets/exit_dialog.dart'; // NEU
+import 'widgets/exit_dialog.dart';
 
 /// The main screen where the gameplay happens.
 ///
@@ -117,7 +117,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  /// Displays the Exit Confirmation Dialog
+  /// NEU: Displays the Exit Confirmation Dialog
   void _showExitDialog() {
     if (!mounted) return;
 
@@ -133,9 +133,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         buttonColor: const Color(0xFFFFC107),
 
         onKeepPlaying: () {
-          // KEEP EMPTY!!! The dialog is closing itself
+          // Leer lassen! Der Dialog schließt sich bereits selbst.
         },
         onExit: () {
+          // Nur 1x pop, um den GameScreen zu schließen.
           Navigator.of(context).pop();
         },
       ),
@@ -217,7 +218,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             initialBoard: initialBoard,
             showWin: _showWinDialog,
             showFail: _showFailDialog,
-            onExitRequest: _showExitDialog, // NEU: Callback übergeben
+            onExitRequest: _showExitDialog,
             fmtTime: _fmtTime,
             isBoss: isBoss,
             bossExitRow: bossExitRow,
@@ -259,7 +260,7 @@ class _GameScaffold extends ConsumerWidget {
     required this.initialBoard,
     required this.showWin,
     required this.showFail,
-    required this.onExitRequest, // NEU
+    required this.onExitRequest,
     required this.fmtTime,
     required this.isBoss,
     required this.bossExitRow,
@@ -358,7 +359,19 @@ class _GameScaffold extends ConsumerWidget {
                 const SizedBox(height: 8),
 
                 // HUD: Contains Undo/Redo/Restart buttons
-                GameHud(onRestart: () => controller.restart(initialBoard)),
+                GameHud(
+                  onRestart: () => controller.restart(initialBoard),
+                  // --- DEINE HUD ANPASSUNGEN ---
+                  buttonColor: const Color(0xFFFFC107), // Gelb/Gold für Restart
+
+                  // Farbe für Undo/Redo wenn aktiv.
+                  // Hier auch Gold, damit es einheitlich aussieht:
+                  activeUndoRedoColor: const Color(0xFFFFC107),
+
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                  verticalOffset: 0.0,
+                ),
 
                 const SizedBox(height: 8),
 

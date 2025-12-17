@@ -5,14 +5,22 @@ import '../controller/game_controller.dart';
 class GameHud extends ConsumerWidget {
   final VoidCallback onRestart;
 
-  const GameHud({super.key, required this.onRestart});
+  // Anpassungs-Parameter
+  final Color buttonColor;          // Farbe des Restart Buttons
+  final Color activeUndoRedoColor;  // NEU: Farbe für Undo/Redo wenn aktiv
+  final double fontSize;
+  final FontWeight fontWeight;
+  final double verticalOffset;
 
-  String _fmtTime(int? secs) {
-    if (secs == null) return '--:--';
-    final m = secs ~/ 60;
-    final s = secs % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
+  const GameHud({
+    super.key,
+    required this.onRestart,
+    this.buttonColor = Colors.blue,
+    this.activeUndoRedoColor = Colors.blue, // Standardwert
+    this.fontSize = 16.0,
+    this.fontWeight = FontWeight.normal,
+    this.verticalOffset = 0.0,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,35 +29,74 @@ class GameHud extends ConsumerWidget {
 
     final used = state.movesUsed;
     final limit = state.moveLimit;
-    final timeLeft = state.timeLeft;
+    // Timer wurde hier entfernt
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        FilledButton.tonal(
-          onPressed: state.history.isEmpty || state.failed ? null : controller.undo,
-          child: const Text('Undo'),
+    final textStyle = TextStyle(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: Colors.black87,
+    );
+
+    // Hilfsfunktion für den Style der Undo/Redo Buttons
+    ButtonStyle undoRedoStyle(bool enabled) {
+      return FilledButton.styleFrom(
+        textStyle: textStyle,
+        // Wenn aktiv -> Deine Wunschfarbe. Wenn inaktiv -> Standard (Transparent/Grau)
+        backgroundColor: enabled ? activeUndoRedoColor : null,
+        // Damit die Textfarbe auf dem farbigen Button gut aussieht (meist weiß),
+        // oder schwarz, je nach Wunsch. Hier standardmäßig Kontrastfarbe.
+        foregroundColor: enabled ? Colors.black : null,
+      );
+    }
+
+    final canUndo = state.history.isNotEmpty && !state.failed;
+    final canRedo = state.future.isNotEmpty && !state.failed;
+
+    return Transform.translate(
+      offset: Offset(0, verticalOffset),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Undo Button
+              FilledButton.tonal(
+                onPressed: canUndo ? controller.undo : null,
+                style: undoRedoStyle(canUndo),
+                child: const Text('Undo'),
+              ),
+              const SizedBox(width: 12),
+
+              // Redo Button
+              FilledButton.tonal(
+                onPressed: canRedo ? controller.redo : null,
+                style: undoRedoStyle(canRedo),
+                child: const Text('Redo'),
+              ),
+              const SizedBox(width: 12),
+
+              // Restart Button
+              FilledButton(
+                onPressed: onRestart,
+                style: FilledButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  textStyle: textStyle,
+                ),
+                child: const Text('Restart'),
+              ),
+              const SizedBox(width: 24),
+
+              // Moves Text
+              Text(
+                limit == null ? 'Moves: $used' : 'Moves: $used / $limit',
+                style: textStyle,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(width: 12),
-        FilledButton.tonal(
-          onPressed: state.future.isEmpty || state.failed ? null : controller.redo,
-          child: const Text('Redo'),
-        ),
-        const SizedBox(width: 12),
-        FilledButton(
-          onPressed: onRestart,
-          child: const Text('Restart'),
-        ),
-        const SizedBox(width: 24),
-        if (limit == null)
-          Text('Moves: $used')
-        else
-          Text('Moves: $used / $limit'),
-        if (state.timeLimit != null) ...[
-          const SizedBox(width: 24),
-          Text('⏱ ${_fmtTime(timeLeft)}'),
-        ],
-      ],
+      ),
     );
   }
 }
