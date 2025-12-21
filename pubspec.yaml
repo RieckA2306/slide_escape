@@ -45,6 +45,7 @@ flutter:
     - assets/game_background/game_background.png
     - assets/game_header/dart_board.png
     - assets/game_header/time_clock.png
+    - assets/game_header/arrow_left.png
 
     # ✅ Add game-level JSONs for Unblock Me board
     - assets/levels/

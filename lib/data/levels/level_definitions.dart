@@ -6,15 +6,15 @@ class LevelDefinitions {
 
   /// The complete list of all levels.
   static final List<Level> allLevels = [
-    Level(id: 1, type: LevelType.normal, targetIds: [1], parMoves: 2),
+    Level(id: 1, type: LevelType.normal, targetIds: [1], parMoves: 2 , difficulty: "Normal"),
     Level(id: 2, type: LevelType.normal, targetIds: [1]),
-    Level(id: 3, type: LevelType.moveLimit, targetIds: [1], moveLimit: 10, parMoves: 10, difficulty: "Move limit"),
+    Level(id: 3, type: LevelType.moveLimit, targetIds: [1], moveLimit: 10, parMoves: 10, difficulty: "Move Limit"),
     Level(id: 4, type: LevelType.normal, targetIds: [1]),
     Level(id: 5, type: LevelType.normal, targetIds: [1]),
-    Level(id: 6, type: LevelType.timeLimit, targetIds: [1], timeLimit: 18, parMoves: 11, difficulty: "time limit"),
+    Level(id: 6, type: LevelType.timeLimit, targetIds: [1], timeLimit: 18, parMoves: 11, difficulty: "Time Limit"),
     Level(id: 7, type: LevelType.normal, targetIds: [1]),
     Level(id: 8, type: LevelType.normal, targetIds: [1]),
-    Level(id: 9, type: LevelType.boss, targetIds: const [], difficulty: "boss"),
+    Level(id: 9, type: LevelType.boss, targetIds: const [], difficulty: "Boss"),
     Level(id: 10, type: LevelType.normal, targetIds: [1]),
     Level(id: 11, type: LevelType.normal, targetIds: [1]),
     Level(id: 12, type: LevelType.normal, targetIds: [1]),
