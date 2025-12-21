@@ -305,24 +305,22 @@ class _GameScaffold extends ConsumerWidget {
     // Read the controller: Used to trigger actions (like restart) without watching state.
     final controller = ref.read(gameControllerProvider.notifier);
 
+    // --- ANPASSBARE HEADER-EINSTELLUNGEN ---
+    const double headerIconSize = 32.0;      // Größe der Bilder (Dartboard & Uhr)
+    const double headerFontSize = 18.0;      // Schriftgröße für Züge & Zeit
+    const FontWeight headerFontWeight = FontWeight.bold; // Fettschrift
+    const double iconTextSpacing = 6.0;      // Abstand zwischen Bild und Text
+    const double itemPadding = 12.0;         // Abstand zwischen den Elementen im Header
+    // ---------------------------------------
+
     // EVENT LISTENER:
     // 'ref.listen' is used for side effects. It does NOT rebuild the UI.
-    // It triggers only when the state changes significantly (e.g., solved changes from false to true).
     ref.listen<GameState>(gameControllerProvider, (previous, next) async {
-      // 1. Check Win Condition: Was not solved before, but IS solved now?
       if (!(previous?.solved ?? false) && next.solved) {
-        // Persistence: Save progress immediately so it counts even if the app crashes.
         LevelProgress.unlockLevel(level.id);
-
-        // UX DELAY: Wait 250ms so the user sees the block hitting the goal
-        // before the dialog covers the screen.
         await Future.delayed(const Duration(milliseconds: 100));
-
         showWin(next.history.length);
-      }
-
-      // 2. Check Fail Condition: Was not failed before, but IS failed now?
-      else if (!(previous?.failed ?? false) &&
+      } else if (!(previous?.failed ?? false) &&
           next.failed &&
           next.failReason != null) {
         showFail(
@@ -333,10 +331,7 @@ class _GameScaffold extends ConsumerWidget {
       }
     });
 
-    // NEU: PopScope intercepts the back button (top left)
     return PopScope(
-      // NEW: If allowPop is true (set via FailDialog exit), we close immediately.
-      // If false, we intercept the back action and show the ExitDialog.
       canPop: allowPop,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -345,46 +340,73 @@ class _GameScaffold extends ConsumerWidget {
       child: Stack(
         children: [
           // LAYER 0: The Background Image
-          // It covers the entire screen space.
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage("assets/game_background/game_background.png"),
-                fit: BoxFit
-                    .cover, // Ensures the image fills the screen without distortion
+                fit: BoxFit.cover,
               ),
             ),
           ),
 
           // LAYER 1: The Game Interface
-          // We use a transparent Scaffold so the background image shows through.
           Scaffold(
-            backgroundColor:
-            Colors.transparent, // Crucial: Make Scaffold transparent
+            backgroundColor: Colors.transparent,
             appBar: AppBar(
-              // Make AppBar semi-transparent or fully transparent to blend with the background
               backgroundColor: Colors.white.withValues(alpha: 0.5),
-              // NEU: Custom Leading Button für Exit Dialog
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: onExitRequest,
               ),
               title: Text('Level ${level.id} • ${level.difficulty}'),
               actions: [
-                // Show Move Counter if a limit exists for this level
+                // Show Move Counter (Dart Board Image + Text)
                 if (state.moveLimit != null)
-                  Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('🎯 ${state.movesUsed} / ${state.moveLimit}'),
-                      )),
-                // Show Timer if a limit exists for this level
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/game_header/dart_board.png",
+                          width: headerIconSize,
+                          height: headerIconSize,
+                        ),
+                        SizedBox(width: iconTextSpacing),
+                        Text(
+                          '${state.movesUsed} / ${state.moveLimit}',
+                          style: const TextStyle(
+                            fontSize: headerFontSize,
+                            fontWeight: headerFontWeight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Show Timer (Clock Image + Text)
                 if (state.timeLimit != null)
-                  Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('⏱ ${fmtTime(state.timeLeft)}'),
-                      )),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/game_header/time_clock.png",
+                          width: headerIconSize,
+                          height: headerIconSize,
+                        ),
+                        SizedBox(width: iconTextSpacing),
+                        Text(
+                          fmtTime(state.timeLeft),
+                          style: const TextStyle(
+                            fontSize: headerFontSize,
+                            fontWeight: headerFontWeight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
             body: Column(
@@ -394,20 +416,14 @@ class _GameScaffold extends ConsumerWidget {
                 // HUD: Contains Undo/Redo/Restart buttons
                 GameHud(
                   onRestart: () => controller.restart(initialBoard),
-                  // --- DEINE HUD ANPASSUNGEN ---
                   buttonColor: const Color(0xFFF1CCE6),
                   activeUndoRedoColor: const Color(0xFFF1CCE6),
-
-                  // Text Styles
                   textColor: const Color(0xFF333333),
                   buttonTextColor: Colors.black,
-
                   fontSize: 17.0,
                   movesFontSize: 19.0,
                   fontWeight: FontWeight.bold,
                   verticalOffset: 14.0,
-
-                  // HIER SIND DIE NEUEN DIMENSIONEN
                   undoRedoWidth: 100.0,
                   undoRedoHeight: 45.0,
                   restartWidth: 160.0,
@@ -416,8 +432,7 @@ class _GameScaffold extends ConsumerWidget {
 
                 const SizedBox(height: 8),
 
-                // THE BOARD: The main interactive area
-                // Expanded ensures it takes up the remaining available space.
+                // THE BOARD
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -427,8 +442,6 @@ class _GameScaffold extends ConsumerWidget {
                         bossMode: isBoss,
                         bossExitRow: bossExitRow,
                         bossExitCol: bossExitCol,
-                        // Negative Value (E.g. -0.2) = Up
-                        // Positive Value (E.g. 0.2) = down
                         verticalAlignment: -0.30,
                       ),
                     ),
