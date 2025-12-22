@@ -49,8 +49,7 @@ class ExitDialog extends StatelessWidget {
         style: textStyle,
       ),
       actions: [
-        // Button 1: Keep Playing (Text Button für weniger visuelles Gewicht oder Filled, je nach Geschmack.
-        // Hier als TextButton, damit der Exit Button klarer hervortritt, aber mit der gewünschten Textfarbe)
+        // Button 1: Keep Playing (Text Button)
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(); // Schließt nur den Dialog
@@ -58,11 +57,11 @@ class ExitDialog extends StatelessWidget {
           },
           child: Text(
             'Keep Playing',
-            style: textStyle, // Deine Textfarbe
+            style: textStyle, // Deine Textfarbe (333333)
           ),
         ),
 
-        // Button 2: Exit (Hervorgehoben)
+        // Button 2: Exit (Hervorgehoben in Pink)
         FilledButton(
           onPressed: () {
             Navigator.of(context).pop(); // Schließt Dialog
@@ -74,7 +73,8 @@ class ExitDialog extends StatelessWidget {
           ),
           child: Text(
             'Exit',
-            style: TextStyle(fontSize: fontSize),
+            // Schriftfarbe hier auf Schwarz gesetzt
+            style: TextStyle(fontSize: fontSize, color: Colors.black),
           ),
         ),
       ],

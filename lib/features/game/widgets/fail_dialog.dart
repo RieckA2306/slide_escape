@@ -63,7 +63,8 @@ class FailDialog extends StatelessWidget {
           ),
           child: Text(
             'Exit',
-            style: TextStyle(fontSize: fontSize),
+            // Schriftfarbe hier auf Schwarz gesetzt
+            style: TextStyle(fontSize: fontSize, color: Colors.black),
           ),
         ),
       ],

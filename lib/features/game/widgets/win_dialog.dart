@@ -55,13 +55,13 @@ class WinDialog extends StatelessWidget {
             onNext();
           },
           style: FilledButton.styleFrom(
-            backgroundColor: buttonColor, // You could overrite the buttoncolor here
+            backgroundColor: buttonColor,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: Text(
             'Next Level',
-            // You could overrite the fontsize here
-            style: TextStyle(fontSize: fontSize),
+            // Schriftfarbe hier auf Schwarz gesetzt
+            style: TextStyle(fontSize: fontSize, color: Colors.black),
           ),
         ),
       ],
