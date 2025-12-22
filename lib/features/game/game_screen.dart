@@ -419,7 +419,7 @@ class _GameScaffold extends ConsumerWidget {
                         ),
                         const SizedBox(width: iconTextSpacing),
                         Text(
-                          '${state.movesUsed} / ${state.moveLimit}',
+                          '${state.moveLimit}',
                           style: TextStyle(
                             fontSize: headerFontSize,
                             fontWeight: headerFontWeight,
@@ -495,7 +495,7 @@ class _GameScaffold extends ConsumerWidget {
                         bossExitCol: bossExitCol,
                         // Negative Value (E.g. -0.2) = Up
                         // Positive Value (E.g. 0.2) = down
-                        verticalAlignment: -0.30,
+                        verticalAlignment: -0.40,
                       ),
                     ),
                   ),
