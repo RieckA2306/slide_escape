@@ -6,7 +6,6 @@ class Level {
   final List<int> targetIds;
   final int? timeLimit;
   final int? moveLimit;
-  final int? parMoves;
   final String difficulty;
 
   Level({
@@ -15,7 +14,6 @@ class Level {
     required this.targetIds,
     this.timeLimit,
     this.moveLimit,
-    this.parMoves,
     this.difficulty = "unknown",
   });
 }
