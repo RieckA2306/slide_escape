@@ -108,7 +108,7 @@ class _BoardViewState extends ConsumerState<BoardView> {
                   ] else ...[
                     // Boss: right-edge marker at bossExitRow
                     Positioned(
-                      right: -8,
+                      right: -5,
                       top: widget.bossExitRow * cellSize + cellSize * 0.25,
                       child: _rightMarker(height: cellSize * 0.5),
                     ),
