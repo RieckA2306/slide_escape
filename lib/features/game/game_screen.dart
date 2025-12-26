@@ -405,6 +405,20 @@ class _GameScaffold extends ConsumerWidget {
                 ),
               ),
               actions: [
+                if (isBoss)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          "assets/game_header/boss.png",
+                          width: 38,
+                          height: 38,
+                        ),
+                      ],
+                    ),
+                  ),
                 // Show Move Counter if a limit exists for this level
                 if (state.moveLimit != null)
                   Padding(
