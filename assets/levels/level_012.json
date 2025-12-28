@@ -4,8 +4,9 @@
   "blocks": [
     { "id": "T", "row": 2, "col": 1, "length": 2, "orientation": "h", "isTarget": true },
 
-    { "id": "A", "row": 0, "col": 0, "length": 3, "orientation": "v" },
+    { "id": "A", "row": 0, "col": 0, "length": 3, "orientation": "h" },
     { "id": "B", "row": 0, "col": 3, "length": 2, "orientation": "v" },
+    { "id": "E", "row": 2, "col": 3, "length": 2, "orientation": "v" },
     { "id": "C", "row": 4, "col": 2, "length": 2, "orientation": "h" },
     { "id": "D", "row": 3, "col": 5, "length": 3, "orientation": "v" }
   ],
