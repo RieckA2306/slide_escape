@@ -1,3 +1,5 @@
+// With this Import your saying Flutter Dart
+// "Start this task and let me know when you're finished. In the meantime, stay responsive."
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/board.dart';
@@ -17,7 +19,7 @@ enum FailReason {
 /// Default is checking if the target block reached the exit, but bosses might have different rules.
 typedef WinCheck = bool Function(Board);
 
-// ================= GAME STATE =================
+// GAME STATE ------------------------------------
 
 /// Holds the immutable state of the current game session.
 /// "Immutable" means fields cannot be changed. We create a new GameState object for every change.

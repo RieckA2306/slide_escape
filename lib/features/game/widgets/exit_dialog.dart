@@ -52,7 +52,7 @@ class ExitDialog extends StatelessWidget {
         // Button 1: Keep Playing (Text Button)
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Schließt nur den Dialog
+            Navigator.of(context).pop(); // Only closes the dialog
             onKeepPlaying();
           },
           child: Text(
