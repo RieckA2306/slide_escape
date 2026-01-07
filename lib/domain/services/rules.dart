@@ -1,3 +1,8 @@
+/*CREATED BY CHATGPT
+"The code Manages game logic, including collision detection and movement constraints.
+Calculates legal sliding bounds for blocks to prevent overlaps and out-of-bounds moves.
+Evaluates victory conditions for both standard levels and dual-target "boss" challenges."
+*/
 import '../entities/board.dart';
 import '../entities/block.dart';
 
