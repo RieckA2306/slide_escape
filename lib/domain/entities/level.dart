@@ -2,6 +2,7 @@ enum LevelType { normal, timeLimit, moveLimit, boss }
 
 class Level {
   final int id;
+  /// e.g. "LevelType.normal", "LevelType.timelimit",...
   final LevelType type;
   final List<int> targetIds;
   final int? timeLimit;

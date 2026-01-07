@@ -32,6 +32,7 @@ class Block {
     isTarget: isTarget,
   );
 
+  //created by ChatGPT (line 36 to 46)
   /// Iterator of occupied cells by this block
   Iterable<(int r, int c)> cells() sync* {
     for (var i = 0; i < length; i++) {

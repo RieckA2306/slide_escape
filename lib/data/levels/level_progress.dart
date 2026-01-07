@@ -16,7 +16,7 @@ class LevelProgress {
 
   // LEVEL UNLOCKING LOGIC ------------------------------------
 
-  /// Retrieves the highest level ID that is currently unlocked.
+  /// Gets the highest level ID that is currently unlocked.
   /// Defaults to 1 if no data is found (e.g., first time playing).
   static Future<int> getHighestUnlockedLevel() async {
     final prefs = await SharedPreferences.getInstance();
