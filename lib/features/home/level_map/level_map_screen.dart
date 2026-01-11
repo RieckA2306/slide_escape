@@ -1,14 +1,12 @@
-import 'dart:async'; // Required for the timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 // --- Imports adapted to your structure ---
 import '../../../domain/entities/level.dart';
-// The Import for our shared-prefernces and Goldtimer
 import '../../../data/levels/level_progress.dart';
-// The Import for the Definitions-Document:
 import '../../../data/levels/level_definitions.dart';
 
-//Import for the Settings Screen
+// Import for the Settings Screen
 import 'settings/settings_screen.dart';
 
 class LevelMapScreen extends StatefulWidget {
@@ -21,17 +19,16 @@ class LevelMapScreen extends StatefulWidget {
 class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
-  // Tracks the highest level the user has unlocked. Defaults to 1.
   int _highestUnlockedLevel = 1;
   bool _initialScrollDone = false;
-
-  // State to control the visibility of the settings overlay
   bool _showSettings = false;
 
-  // --- GOLD & TIMER STATE ---
   int _currentGold = 10;
   Timer? _regenTimer;
   int _secondsUntilNextGold = 0;
+
+  // Design-Referenzbreite vom Pixel 8
+  static const double _designWidth = 393.0;
 
   @override
   bool get wantKeepAlive => true;
@@ -42,7 +39,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     _loadProgress(initialLoad: true);
     _loadGoldStatus();
 
-    // Initial Scroll Fix
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _attemptAutoScroll(isInitial: true);
     });
@@ -51,17 +47,15 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   @override
   void dispose() {
     _regenTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // Toggles the settings overlay on or off
   void _toggleSettings() {
     setState(() {
       _showSettings = !_showSettings;
     });
   }
-
-  // --- GOLD LOGIC METHODS ---
 
   Future<void> _loadGoldStatus() async {
     final status = await LevelProgress.getGoldStatus();
@@ -187,12 +181,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Not enough Gold! Wait for regeneration.",
+            "Nicht genug Gold!",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
@@ -205,17 +196,18 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   Widget build(BuildContext context) {
     super.build(context);
 
-    // --- PLAYER XP LOGIC ---
+    // Calculations of scalefactor for the position of the level nodes
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double scale = screenWidth / _designWidth;
+
     final int completedLevels = _highestUnlockedLevel - 1;
     const double xpPerLevel = 0.334;
     final double totalXp = completedLevels * xpPerLevel;
     final int playerLevel = 1 + totalXp.floor();
     final double barProgress = (totalXp % 1.0).clamp(0.0, 1.0);
 
-    // Wrap the CustomScrollView in a Stack to allow the Settings Overlay and the Debug Button to sit on top
     return Stack(
       children: [
-        // LAYER 0: The Main Map Content (CustomScrollView)
         CustomScrollView(
           controller: _scrollController,
           slivers: [
@@ -280,13 +272,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                                       fontWeight: FontWeight.w900,
                                       fontSize: 20,
                                       color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 3,
-                                          color: Colors.black54,
-                                          offset: Offset(1, 1),
-                                        ),
-                                      ],
                                     ),
                                   ),
                                 ],
@@ -296,29 +281,34 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                         ),
                       ),
                     ),
-
-                    // Frame image + Star
+                    //Frame image + Star (Horizontal zentriert)
                     Positioned(
-                      left: 161,
-                      bottom: -20,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Image.asset(
-                            "assets/app_bar/profile_pictures/star.png",
-                            width: 60,
-                            height: 60,
-                          ),
-                          Image.asset(
-                            "assets/app_bar/frames/frame2.png",
-                            width: 90,
-                            height: 90,
-                          ),
-                        ],
+                    left: 0,
+                    right: 0,
+                    bottom: -20,
+                    child: Center(
+                      child: SizedBox(
+                        width: 90, // Die widht of the biggest Element (frame2.png)
+                        height: 90,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(
+                              "assets/app_bar/profile_pictures/star.png",
+                              width: 60,
+                              height: 60,
+                            ),
+                            Image.asset(
+                              "assets/app_bar/frames/frame2.png",
+                              width: 90,
+                              height: 90,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-
-                    // Gold + value
+                  ),
+                    // Gold
                     Positioned(
                       right: 48,
                       top: 5,
@@ -340,55 +330,29 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: Colors.black26),
                                 ),
-                                child: Text(
-                                  "$_currentGold",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                child: Text("$_currentGold", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               ),
                             ),
                             Align(
                               alignment: Alignment.centerLeft,
-                              child: Image.asset(
-                                "assets/app_bar/goldbar.png",
-                                width: 60,
-                                height: 60,
-                              ),
+                              child: Image.asset("assets/app_bar/goldbar.png", width: 60, height: 60),
                             ),
                           ],
                         ),
                       ),
                     ),
-
-                    // TIMER
                     if (_currentGold < 10)
                       Positioned(
                         top: 43,
                         right: 78,
-                        child: Text(
-                          _timerString,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: Text(_timerString, style: const TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.bold)),
                       ),
-
-                    // Settings icon (Top: 4)
                     Positioned(
                       right: 10,
                       top: 4,
                       child: GestureDetector(
                         onTap: _toggleSettings,
-                        child: Image.asset(
-                          "assets/app_bar/settings.png",
-                          width: 55,
-                          height: 55,
-                        ),
+                        child: Image.asset("assets/app_bar/settings.png", width: 55, height: 55),
                       ),
                     ),
                   ],
@@ -396,100 +360,70 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
               ),
             ),
 
-            // --- MAP SECTIONS ---
-            // Section with Level 37 to 45
-            SliverToBoxAdapter(
-              child: _buildMapSection(
-                context,
-                children: [
-                  _buildLevel(204, 558, LevelDefinitions.getLevelById(37)),
-                  _buildLevel(122, 518, LevelDefinitions.getLevelById(38)),
-                  _buildLevel(256, 438, LevelDefinitions.getLevelById(39)),
-                  _buildLevel(125, 373, LevelDefinitions.getLevelById(40)),
-                  _buildLevel(231, 287, LevelDefinitions.getLevelById(41)),
-                  _buildLevel(118, 207, LevelDefinitions.getLevelById(42)),
-                  _buildLevel(238, 140, LevelDefinitions.getLevelById(43)),
-                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(44)),
-                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(45)),
-                ],
-              ),
-            ),
+            // MAP SECTIONS (with scale)
+            _buildSliverMapSection(context, scale, [
+              _buildLevel(195, 530, LevelDefinitions.getLevelById(37), scale),
+              _buildLevel(115, 493, LevelDefinitions.getLevelById(38), scale),
+              _buildLevel(243, 420, LevelDefinitions.getLevelById(39), scale),
+              _buildLevel(119, 360, LevelDefinitions.getLevelById(40), scale),
+              _buildLevel(220, 275, LevelDefinitions.getLevelById(41), scale),
+              _buildLevel(110, 200, LevelDefinitions.getLevelById(42), scale),
+              _buildLevel(226, 133, LevelDefinitions.getLevelById(43), scale),
+              _buildLevel(123, 44,  LevelDefinitions.getLevelById(44), scale),
+              _buildLevel(245, 8,   LevelDefinitions.getLevelById(45), scale),
+            ]),
 
-            // Section with Level 28 to 36
-            SliverToBoxAdapter(
-              child: _buildMapSection(
-                context,
-                children: [
-                  _buildLevel(204, 558, LevelDefinitions.getLevelById(28)),
-                  _buildLevel(122, 518, LevelDefinitions.getLevelById(29)),
-                  _buildLevel(256, 438, LevelDefinitions.getLevelById(30)),
-                  _buildLevel(125, 373, LevelDefinitions.getLevelById(31)),
-                  _buildLevel(231, 287, LevelDefinitions.getLevelById(32)),
-                  _buildLevel(118, 207, LevelDefinitions.getLevelById(33)),
-                  _buildLevel(238, 140, LevelDefinitions.getLevelById(34)),
-                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(35)),
-                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(36)),
-                ],
-              ),
-            ),
+            _buildSliverMapSection(context, scale, [
+              _buildLevel(195, 530, LevelDefinitions.getLevelById(28), scale),
+              _buildLevel(115, 493, LevelDefinitions.getLevelById(29), scale),
+              _buildLevel(243, 420, LevelDefinitions.getLevelById(30), scale),
+              _buildLevel(119, 360, LevelDefinitions.getLevelById(31), scale),
+              _buildLevel(220, 275, LevelDefinitions.getLevelById(32), scale),
+              _buildLevel(110, 200, LevelDefinitions.getLevelById(33), scale),
+              _buildLevel(226, 133, LevelDefinitions.getLevelById(34), scale),
+              _buildLevel(123, 44,  LevelDefinitions.getLevelById(35), scale),
+              _buildLevel(245, 8,   LevelDefinitions.getLevelById(36), scale),
+            ]),
 
-            // Section with Level 19 to 27
-            SliverToBoxAdapter(
-              child: _buildMapSection(
-                context,
-                children: [
-                  _buildLevel(204, 558, LevelDefinitions.getLevelById(19)),
-                  _buildLevel(122, 518, LevelDefinitions.getLevelById(20)),
-                  _buildLevel(256, 438, LevelDefinitions.getLevelById(21)),
-                  _buildLevel(125, 373, LevelDefinitions.getLevelById(22)),
-                  _buildLevel(231, 287, LevelDefinitions.getLevelById(23)),
-                  _buildLevel(118, 207, LevelDefinitions.getLevelById(24)),
-                  _buildLevel(238, 140, LevelDefinitions.getLevelById(25)),
-                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(26)),
-                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(27)),
-                ],
-              ),
-            ),
+            _buildSliverMapSection(context, scale, [
+              _buildLevel(195, 530, LevelDefinitions.getLevelById(19), scale),
+              _buildLevel(115, 493, LevelDefinitions.getLevelById(20), scale),
+              _buildLevel(243, 420, LevelDefinitions.getLevelById(21), scale),
+              _buildLevel(119, 360, LevelDefinitions.getLevelById(22), scale),
+              _buildLevel(220, 275, LevelDefinitions.getLevelById(23), scale),
+              _buildLevel(110, 200, LevelDefinitions.getLevelById(24), scale),
+              _buildLevel(226, 133, LevelDefinitions.getLevelById(25), scale),
+              _buildLevel(123, 44,  LevelDefinitions.getLevelById(26), scale),
+              _buildLevel(245, 8,   LevelDefinitions.getLevelById(27), scale),
+            ]),
 
-            // Section with Level 10 to 18
-            SliverToBoxAdapter(
-              child: _buildMapSection(
-                context,
-                children: [
-                  _buildLevel(204, 558, LevelDefinitions.getLevelById(10)),
-                  _buildLevel(122, 518, LevelDefinitions.getLevelById(11)),
-                  _buildLevel(256, 438, LevelDefinitions.getLevelById(12)),
-                  _buildLevel(125, 373, LevelDefinitions.getLevelById(13)),
-                  _buildLevel(231, 287, LevelDefinitions.getLevelById(14)),
-                  _buildLevel(118, 207, LevelDefinitions.getLevelById(15)),
-                  _buildLevel(238, 140, LevelDefinitions.getLevelById(16)),
-                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(17)),
-                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(18)),
-                ],
-              ),
-            ),
+            _buildSliverMapSection(context, scale, [
+              _buildLevel(195, 530, LevelDefinitions.getLevelById(10), scale),
+              _buildLevel(115, 493, LevelDefinitions.getLevelById(11), scale),
+              _buildLevel(243, 420, LevelDefinitions.getLevelById(12), scale),
+              _buildLevel(119, 360, LevelDefinitions.getLevelById(13), scale),
+              _buildLevel(220, 275, LevelDefinitions.getLevelById(14), scale),
+              _buildLevel(110, 200, LevelDefinitions.getLevelById(15), scale),
+              _buildLevel(226, 133, LevelDefinitions.getLevelById(16), scale),
+              _buildLevel(123, 44,  LevelDefinitions.getLevelById(17), scale),
+              _buildLevel(245, 8,   LevelDefinitions.getLevelById(18), scale),
+            ]),
 
-            // Section with Level 1 to 9
-            SliverToBoxAdapter(
-              child: _buildMapSection(
-                context,
-                children: [
-                  _buildLevel(204, 558, LevelDefinitions.getLevelById(1)),
-                  _buildLevel(122, 518, LevelDefinitions.getLevelById(2)),
-                  _buildLevel(256, 438, LevelDefinitions.getLevelById(3)),
-                  _buildLevel(125, 373, LevelDefinitions.getLevelById(4)),
-                  _buildLevel(231, 287, LevelDefinitions.getLevelById(5)),
-                  _buildLevel(118, 207, LevelDefinitions.getLevelById(6)),
-                  _buildLevel(238, 140, LevelDefinitions.getLevelById(7)),
-                  _buildLevel(129, 45,  LevelDefinitions.getLevelById(8)),
-                  _buildLevel(256, 8,   LevelDefinitions.getLevelById(9)),
-                ],
-              ),
-            ),
+            _buildSliverMapSection(context, scale, [
+              _buildLevel(195, 530, LevelDefinitions.getLevelById(1), scale),
+              _buildLevel(115, 493, LevelDefinitions.getLevelById(2), scale),
+              _buildLevel(243, 420, LevelDefinitions.getLevelById(3), scale),
+              _buildLevel(119, 360, LevelDefinitions.getLevelById(4), scale),
+              _buildLevel(220, 275, LevelDefinitions.getLevelById(5), scale),
+              _buildLevel(110, 200, LevelDefinitions.getLevelById(6), scale),
+              _buildLevel(226, 133, LevelDefinitions.getLevelById(7), scale),
+              _buildLevel(123, 44,  LevelDefinitions.getLevelById(8), scale),
+              _buildLevel(245, 8,   LevelDefinitions.getLevelById(9), scale),
+            ]),
           ],
         ),
 
-        // LAYER 1:  BUTTON for Gold one layer up. This was nessecary due to a bug where the button did´nt reacted to a click.
+        // Debug Button
         Positioned(
           right: 10,
           top: 130,
@@ -497,33 +431,22 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
             onTap: _debugAddGold,
             child: Container(
               padding: const EdgeInsets.all(4),
-              color: Colors.blue.withValues(alpha: 0.8),
-              child: const Text(
-                "+5 GOLD",
-                style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+              color: Colors.blue.withOpacity(0.8),
+              child: const Text("+5 GOLD", style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
         ),
 
-
-        // LAYER 2: Settings Overlay
+        // Settings Overlay
         if (_showSettings)
           Positioned.fill(
             child: Stack(
               children: [
-                // 1.1 The Barrier (Transparent carpet)
                 GestureDetector(
                   onTap: _toggleSettings,
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
+                  child: Container(color: Colors.transparent),
                 ),
-
-                // 1.2 The Settings Dialog
-                const Center(
-                  child: SettingsScreen(),
-                ),
+                const Center(child: SettingsScreen()),
               ],
             ),
           ),
@@ -531,7 +454,14 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
-  Widget _buildMapSection(BuildContext context, {required List<Widget> children}) {
+  // Hilfsmethode für Slivers, um den Code oben sauberer zu halten
+  Widget _buildSliverMapSection(BuildContext context, double scale, List<Widget> levels) {
+    return SliverToBoxAdapter(
+      child: _buildMapSection(context, scale, children: levels),
+    );
+  }
+
+  Widget _buildMapSection(BuildContext context, double scale, {required List<Widget> children}) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Stack(
@@ -547,12 +477,16 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
-  Widget _buildLevel(double left, double top, Level level) {
+  Widget _buildLevel(double left, double top, Level level, double scale) {
     final bool isLocked = level.id > _highestUnlockedLevel;
 
+    // ICON GRÖSSE ebenfalls skalieren, damit sie zum Pfad passt
+    final double iconSize = 63 * scale;
+    //Level Nodes
     return Positioned(
-      left: left,
-      top: top,
+      // scale the positions
+      left: left * scale,
+      top: top * scale,
       child: GestureDetector(
         onTap: () async {
           if (isLocked) return;
@@ -563,38 +497,34 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
           children: [
             Image.asset(
               "assets/level_background/normal_level_background.png",
-              width: 63,
-              height: 63,
+              width: iconSize,
+              height: iconSize,
             ),
             if (isLocked)
               Container(
-                width: 58,
-                height: 58,
+                width: 58 * scale,
+                height: 58 * scale,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: Colors.black.withOpacity(0.25),
                 ),
               ),
             if (isLocked)
               Image.asset(
                 "assets/Lock/Lock.png",
-                width: 60,
-                height: 60,
+                width: 60 * scale,
+                height: 60 * scale,
                 fit: BoxFit.contain,
               )
             else
               Text(
                 level.id.toString(),
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize: 20 * scale, // Text ebenfalls leicht skalieren
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 4,
-                      color: Colors.black54,
-                      offset: Offset(1, 1),
-                    ),
+                  shadows: const [
+                    Shadow(blurRadius: 4, color: Colors.black54, offset: Offset(1, 1)),
                   ],
                 ),
               ),
