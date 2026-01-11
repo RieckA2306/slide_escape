@@ -283,31 +283,39 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                     ),
                     //Frame image + Star (Horizontal zentriert)
                     Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: -20,
-                    child: Center(
-                      child: SizedBox(
-                        width: 90, // Die widht of the biggest Element (frame2.png)
-                        height: 90,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.asset(
-                              "assets/app_bar/profile_pictures/star.png",
-                              width: 60,
-                              height: 60,
-                            ),
-                            Image.asset(
-                              "assets/app_bar/frames/frame2.png",
-                              width: 90,
-                              height: 90,
-                            ),
-                          ],
+                      left: 0,
+                      right: 0,
+                      bottom: -20,
+                      child: Center(
+                        child: SizedBox(
+                          width: 90,
+                          height: 90,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Star profile picture
+                              Image.asset(
+                                "assets/app_bar/profile_pictures/star.png",
+                                width: 60,
+                                height: 60,
+                              ),
+                              // Dynamic Frame
+                              Image.asset(
+                                playerLevel >= 6
+                                    ? "assets/app_bar/frames/frame4.png"
+                                    : playerLevel >= 3
+                                    ? "assets/app_bar/frames/frame3.png"
+                                    : playerLevel == 2
+                                    ? "assets/app_bar/frames/frame2.png"
+                                    : "assets/app_bar/frames/frame1.png",
+                                width: 90,
+                                height: 90,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                     // Gold
                     Positioned(
                       right: 48,

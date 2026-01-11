@@ -156,10 +156,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         buttonColor: const Color(0xFFF1CCE6),
 
         onKeepPlaying: () {
-          // Leer lassen! Der Dialog schließt sich bereits selbst.
+          // Keep Empty! The dialog closes itself
         },
         onExit: () {
-          // Nur 1x pop, um den GameScreen zu schließen.
+          // Yust 1x pop, to close GameScreen
           // NEW: Also allow force exit here to avoid loop if triggered manually
           setState(() {
             _forceExit = true;
@@ -170,7 +170,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  /// Eigentliche Formatierung (korrigiert):
   /// Example: 65 seconds -> "01:05".
   String _fmtTimeCorrected(int? secs) {
     if (secs == null) return '--:--';
