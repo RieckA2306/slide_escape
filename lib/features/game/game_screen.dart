@@ -8,11 +8,13 @@ import '../../domain/services/rules.dart';
 import '../../data/levels/level_progress.dart';
 
 import 'controller/game_controller.dart';
+import 'state/game_state.dart';
 import 'widgets/board_view.dart';
 import 'widgets/hud.dart';
 import 'widgets/win_dialog.dart';
 import 'widgets/fail_dialog.dart';
 import 'widgets/exit_dialog.dart';
+import 'widgets/game_bar.dart'; // NEU: Import der GameBar
 
 /// The main screen where the gameplay happens.
 ///
@@ -168,16 +170,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  /// Helper function to format seconds into a "MM:SS" string.
+  /// Eigentliche Formatierung (korrigiert):
   /// Example: 65 seconds -> "01:05".
-  String _fmtTime(int? secs) {
-    if (secs == null) return '--:--';
-    final m = secs ~/ 60;
-    final s = secs % 60;
-    return '${m.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}'; // Korrektur: m und s
-  }
-
-  // Eigentliche Formatierung (korrigiert):
   String _fmtTimeCorrected(int? secs) {
     if (secs == null) return '--:--';
     final m = secs ~/ 60;
@@ -313,21 +307,6 @@ class _GameScaffold extends ConsumerWidget {
     // Read the controller: Used to trigger actions (like restart) without watching state.
     final controller = ref.read(gameControllerProvider.notifier);
 
-    // --- ANPASSBARE HEADER-EINSTELLUNGEN ---
-    const double headerIconSize = 28.0;      // Größe für Dartboard & Uhr
-    const double arrowIconSize = 38.0;       // EIGENE GRÖSSE FÜR DEN PFEIL
-
-    const double headerFontSize = 18.0;      // Schriftgröße für Züge & Zeit
-    const FontWeight headerFontWeight = FontWeight.bold; // Fettschrift für Züge & Zeit (z.B. FontWeight.w600)
-
-    // Einstellungen für den "Level X" Titel
-    const double titleFontSize = 22.0;
-    const FontWeight titleFontWeight = FontWeight.w400; // Probiere hier FontWeight.w600 für eine Stufe unter Bold
-
-    const double iconTextSpacing = 8.0;      // Abstand zwischen Bild und Text
-    const double itemPadding = 20.0;         // Abstand zwischen den Elementen im Header
-    // ---------------------------------------
-
     // EVENT LISTENER:
     // 'ref.listen' is used for side effects. It does NOT rebuild the UI.
     // It triggers only when the state changes significantly (e.g., solved changes from false to true).
@@ -337,7 +316,7 @@ class _GameScaffold extends ConsumerWidget {
         // Persistence: Save progress immediately so it counts even if the app crashes.
         LevelProgress.unlockLevel(level.id);
 
-        // UX DELAY: Wait 250ms so the user sees the block hitting the goal
+        // UX DELAY: Wait 100ms so the user sees the block hitting the goal
         // before the dialog covers the screen.
         await Future.delayed(const Duration(milliseconds: 100));
 
@@ -368,104 +347,23 @@ class _GameScaffold extends ConsumerWidget {
       child: Stack(
         children: [
           // LAYER 0: The Background Image
-          // It covers the entire screen space.
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage("assets/game_background/game_background.png"),
-                fit: BoxFit
-                    .cover, // Ensures the image fills the screen without distortion
+                fit: BoxFit.cover,
               ),
             ),
           ),
 
           // LAYER 1: The Game Interface
-          // We use a transparent Scaffold so the background image shows through.
           Scaffold(
-            backgroundColor:
-            Colors.transparent, // Crucial: Make Scaffold transparent
-            appBar: AppBar(
-              // Make AppBar semi-transparent or fully transparent to blend with the background
-              backgroundColor: Colors.white.withValues(alpha: 0.5),
-              // NEU: Custom Leading Button für Exit Dialog mit Asset und eigener Größe
-              leading: IconButton(
-                icon: Image.asset(
-                  "assets/game_header/arrow_left.png",
-                  width: arrowIconSize,
-                  height: arrowIconSize,
-                ),
-                onPressed: onExitRequest,
-              ),
-              // NEU: Anpassbarer Titel-Style für Level und Schwierigkeit
-              title: Text(
-                'Level ${level.id} • ${level.difficulty}',
-                style: const TextStyle(
-                  fontSize: titleFontSize,
-                  fontWeight: titleFontWeight,
-                ),
-              ),
-              actions: [
-                if (isBoss)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          "assets/game_header/boss.png",
-                          width: 38,
-                          height: 38,
-                        ),
-                      ],
-                    ),
-                  ),
-                // Show Move Counter if a limit exists for this level
-                if (state.moveLimit != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          "assets/game_header/dart_board.png",
-                          width: headerIconSize,
-                          height: headerIconSize,
-                        ),
-                        const SizedBox(width: iconTextSpacing),
-                        Text(
-                          '${state.moveLimit}',
-                          style: TextStyle(
-                            fontSize: headerFontSize,
-                            fontWeight: headerFontWeight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                // Show Timer if a limit exists for this level
-                if (state.timeLimit != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: itemPadding),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          "assets/game_header/time_clock.png",
-                          width: headerIconSize,
-                          height: headerIconSize,
-                        ),
-                        const SizedBox(width: iconTextSpacing),
-                        Text(
-                          fmtTime(state.timeLeft),
-                          style: TextStyle(
-                            fontSize: headerFontSize,
-                            fontWeight: headerFontWeight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+            backgroundColor: Colors.transparent,
+            // HIER WIRD DIE NEUE GAMEBAR EINGESETZT
+            appBar: GameBar(
+              level: level,
+              onExitRequest: onExitRequest,
+              fmtTime: fmtTime,
             ),
             body: Column(
               children: [
@@ -474,20 +372,14 @@ class _GameScaffold extends ConsumerWidget {
                 // HUD: Contains Undo/Redo/Restart buttons
                 GameHud(
                   onRestart: () => controller.restart(initialBoard),
-                  // --- DEINE HUD ANPASSUNGEN ---
                   buttonColor: const Color(0xFFF1CCE6),
                   activeUndoRedoColor: const Color(0xFFF1CCE6),
-
-                  // Text Styles
                   textColor: const Color(0xFF333333),
                   buttonTextColor: Colors.black,
-
                   fontSize: 17.0,
                   movesFontSize: 19.0,
                   fontWeight: FontWeight.bold,
                   verticalOffset: 14.0,
-
-                  // HIER SIND DIE NEUEN DIMENSIONEN
                   undoRedoWidth: 100.0,
                   undoRedoHeight: 45.0,
                   restartWidth: 160.0,
@@ -497,7 +389,6 @@ class _GameScaffold extends ConsumerWidget {
                 const SizedBox(height: 8),
 
                 // THE BOARD: The main interactive area
-                // Expanded ensures it takes up the remaining available space.
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -507,8 +398,6 @@ class _GameScaffold extends ConsumerWidget {
                         bossMode: isBoss,
                         bossExitRow: bossExitRow,
                         bossExitCol: bossExitCol,
-                        // Negative Value (E.g. -0.2) = Up
-                        // Positive Value (E.g. 0.2) = down
                         verticalAlignment: -0.40,
                       ),
                     ),
