@@ -140,7 +140,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  /// NEU: Displays the Exit Confirmation Dialog
+  /// Displays the Exit Confirmation Dialog
   void _showExitDialog() {
     if (!mounted) return;
 
@@ -227,7 +227,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // We wrap the game UI in a ProviderScope.
         // This allows us to "Override" the generic [gameControllerProvider] with
         // a specific instance that knows about THIS level's loaded board and rules.
-        // This is dependency injection in action.
         return ProviderScope(
           overrides: [
             gameControllerProvider.overrideWith(

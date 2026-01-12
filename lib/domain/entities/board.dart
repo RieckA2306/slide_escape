@@ -8,7 +8,13 @@ class Board {
   /// Immutable list of blocks
   final List<Block> blocks;
 
-  const Board({required this.width, required this.height, required this.blocks});
+  //Final! A board can never change. A new Board is created when a move is made.
+
+  const Board({
+    required this.width,
+    required this.height,
+    required this.blocks
+  });
 
   Block get target => blocks.firstWhere((b) => b.isTarget);
 

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-// Import the specific screens for each tab
 import '../home/shop/shop_screen.dart';
 import '../home/level_map/level_map_screen.dart';
 import '../home/leaderboard/leaderboard_screen.dart';
-import '../home/widgets/app_footer.dart'; // Import the custom footer widget
+import '../home/widgets/app_footer.dart';
 
 /// The main screen that holds the navigation and the different pages (Shop, Map, Leaderboard).
 /// It uses a StatefulWidget to manage the currently active tab and page.

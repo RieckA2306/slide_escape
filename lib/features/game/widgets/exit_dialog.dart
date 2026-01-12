@@ -4,7 +4,7 @@ class ExitDialog extends StatelessWidget {
   final VoidCallback onKeepPlaying;
   final VoidCallback onExit;
 
-  // Anpassungs-Parameter (identisch zu Win/Fail Dialog)
+  // adjust the parameters (idetnical to  Win/Fail)
   final Color backgroundColor;
   final double opacity;
   final Color buttonColor;
@@ -15,7 +15,7 @@ class ExitDialog extends StatelessWidget {
     super.key,
     required this.onKeepPlaying,
     required this.onExit,
-    // Standardwerte
+    // Standardvalues, they get overwritten in game_screen line 143 to 171
     this.backgroundColor = Colors.white,
     this.opacity = 1.0,
     this.buttonColor = Colors.blue,
@@ -32,10 +32,8 @@ class ExitDialog extends StatelessWidget {
     );
 
     return AlertDialog(
-      // Hintergrund und Transparenz
       backgroundColor: backgroundColor.withValues(alpha: opacity),
 
-      // Aktionen zentrieren
       actionsAlignment: MainAxisAlignment.center,
 
       title: Text(
@@ -57,15 +55,15 @@ class ExitDialog extends StatelessWidget {
           },
           child: Text(
             'Keep Playing',
-            style: textStyle, // Deine Textfarbe (333333)
+            style: textStyle,
           ),
         ),
 
-        // Button 2: Exit (Hervorgehoben in Pink)
+        // Button 2: Exit
         FilledButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Schließt Dialog
-            onExit(); // Führt Exit aus
+            Navigator.of(context).pop(); // closes dialog
+            onExit(); // executes the exit
           },
           style: FilledButton.styleFrom(
             backgroundColor: buttonColor,
@@ -73,7 +71,6 @@ class ExitDialog extends StatelessWidget {
           ),
           child: Text(
             'Exit',
-            // Schriftfarbe hier auf Schwarz gesetzt
             style: TextStyle(fontSize: fontSize, color: Colors.black),
           ),
         ),

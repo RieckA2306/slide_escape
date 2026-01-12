@@ -23,6 +23,7 @@ class Block {
     this.isTarget = false,
   });
 
+  //after a block has been moved it is replaced with a new one. It just looks like it is the excat same block
   Block copyWith({int? row, int? col}) => Block(
     id: id,
     row: row ?? this.row,

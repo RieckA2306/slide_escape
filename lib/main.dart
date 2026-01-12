@@ -19,10 +19,9 @@ class SlideEscapeApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
 
-      // >>> WICHTIG: Einstieg ist jetzt der HomeScreen mit PageView + Footer
+      // >>> Important! This is the entrypoint!
       home: const HomeScreen(),
 
-      // Du brauchst weiterhin nur die Game-Route für Levelstart
       onGenerateRoute: (settings) {
         if (settings.name == '/game') {
           final level = settings.arguments as Level;

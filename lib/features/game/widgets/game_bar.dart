@@ -85,7 +85,7 @@ class GameBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
                 const SizedBox(width: iconTextSpacing),
                 Text(
-                  '${state.movesLeft}', // Nutzt nun den berechneten Getter aus dem State
+                  '${state.moveLimit}', // Nutzt nun den berechneten Getter aus dem State
                   style: const TextStyle(
                     fontSize: headerFontSize,
                     fontWeight: headerFontWeight,

@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-// --- Imports adapted to your structure ---
 import '../../../domain/entities/level.dart';
 import '../../../data/levels/level_progress.dart';
 import '../../../data/levels/level_definitions.dart';
-
-// Import for the Settings Screen
 import 'settings/settings_screen.dart';
 
+/// The main entry point for level selection and progression.
+///
+/// Responsibilities:
+/// 1. Navigation: Allows users to scroll through a map and select unlocked levels.
+/// 2. Progression: Fetches the highest unlocked level and updates the UI accordingly.
+/// 3. Energy System: Manages gold (currency/energy) regeneration via a background timer.
+/// 4. Responsiveness: Scales the map coordinates based on a fixed design width (Pixel 8).
 class LevelMapScreen extends StatefulWidget {
   const LevelMapScreen({super.key});
 
@@ -19,44 +22,40 @@ class LevelMapScreen extends StatefulWidget {
 class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
+  // State variables for progression and UI control if status switches its being rebuild
+  //Got to define it in the beginning before the values are being sourced out of level_prpgress.dart (line 58)
   int _highestUnlockedLevel = 1;
-  bool _initialScrollDone = false;
   bool _showSettings = false;
 
+  // Gold/Energy System state
   int _currentGold = 10;
   Timer? _regenTimer;
   int _secondsUntilNextGold = 0;
 
-  // Design-Referenzbreite vom Pixel 8
+  /// CREATED BY CHATPGPT
+  /// Used to calculate a scale factor for absolute positioning on the map.
+  /// 393 is modern reference size for width
   static const double _designWidth = 393.0;
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => true; // Prevents the screen from being disposed during tab switches
 
-  @override
-  void initState() {
-    super.initState();
-    _loadProgress(initialLoad: true);
-    _loadGoldStatus();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _attemptAutoScroll(isInitial: true);
-    });
-  }
-
-  @override
-  void dispose() {
-    _regenTimer?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
+  /// Toggles the visibility of the settings overlay.
   void _toggleSettings() {
     setState(() {
       _showSettings = !_showSettings;
     });
   }
 
+  /// After app is started get all of the data
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+    _loadGoldStatus();
+  }
+
+  /// Fetches the current gold amount and time until next regeneration from storage.
   Future<void> _loadGoldStatus() async {
     final status = await LevelProgress.getGoldStatus();
     if (!mounted) return;
@@ -66,11 +65,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
       _secondsUntilNextGold = status['secondsRemaining'];
     });
 
+    // Start timer if gold is below the maximum (10)
     if (_currentGold < 10 && (_regenTimer == null || !_regenTimer!.isActive)) {
       _startRegenTimer();
     }
   }
 
+  /// Handles the countdown logic for gold regeneration.
   void _startRegenTimer() {
     _regenTimer?.cancel();
     _regenTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
@@ -83,16 +84,19 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
         if (_secondsUntilNextGold > 0) {
           _secondsUntilNextGold--;
         } else {
+          // Timer reached zero: fetch updated gold amount
           _loadGoldStatus();
         }
       });
 
-      if (_currentGold >= 10) {
-        timer.cancel();
-      }
+
+
+
+
     });
   }
 
+  /// Formats the remaining regeneration time (e.g., "04:59").
   String get _timerString {
     if (_currentGold >= 10) return "";
     final minutes = (_secondsUntilNextGold / 60).floor();
@@ -100,80 +104,39 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
-  void _attemptAutoScroll({int retries = 0, bool isInitial = false}) {
-    if (!mounted) return;
-
-    if (_scrollController.hasClients && _scrollController.position.maxScrollExtent > 0) {
-      if (isInitial && !_initialScrollDone) {
-        _scrollToCurrentLevel();
-        _initialScrollDone = true;
-      }
-    } else {
-      if (retries < 10) {
-        Future.delayed(const Duration(milliseconds: 300), () => _attemptAutoScroll(retries: retries + 1, isInitial: isInitial));
-      }
-    }
-  }
-
-  Future<void> _loadProgress({bool initialLoad = false}) async {
+  /// Loads player progress and handles UI updates.
+  Future<void> _loadProgress() async {
     final highest = await LevelProgress.getHighestUnlockedLevel();
     if (mounted) {
-      final bool hasChanged = highest != _highestUnlockedLevel;
-
       setState(() {
         _highestUnlockedLevel = highest;
       });
-
-      if (hasChanged && !initialLoad && _scrollController.hasClients) {
-        Future.delayed(const Duration(milliseconds: 100), _scrollToCurrentLevel);
-      }
     }
   }
 
-  void _scrollToCurrentLevel() {
-    if (!_scrollController.hasClients) return;
-
-    final double maxScroll = _scrollController.position.maxScrollExtent;
-    double targetOffset = maxScroll;
-
-    if (_highestUnlockedLevel >= 15) {
-      targetOffset = 0;
-    } else if (_highestUnlockedLevel >= 13) {
-      targetOffset = maxScroll * 0.25;
-    } else if (_highestUnlockedLevel >= 11) {
-      targetOffset = maxScroll * 0.50;
-    } else if (_highestUnlockedLevel >= 9) {
-      targetOffset = maxScroll * 0.75;
-    } else {
-      targetOffset = maxScroll;
-    }
-
-    _scrollController.animateTo(
-        targetOffset,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeOutCubic
-    );
-  }
-
+  /// DEBUG: Adds gold to the player for testing purposes.
   Future<void> _debugAddGold() async {
     await LevelProgress.debugAddGold(5);
     _loadGoldStatus();
   }
 
+  /// Refreshes all data on the screen.
   void _refreshProgress() {
     _loadProgress();
     _loadGoldStatus();
   }
 
+  /// Handles level selection, gold consumption, and navigation.
   Future<void> _onLevelTap(Level level) async {
-    if (level.id > _highestUnlockedLevel) return;
-
+    if (level.id > _highestUnlockedLevel) return; // Prevent entering locked levels
+    //consumes gold here
     bool success = await LevelProgress.consumeGold();
 
     if (success) {
       await _loadGoldStatus();
       if (!mounted) return;
 
+      // Navigate to game and refresh when returning
       await Navigator.pushNamed(context, "/game", arguments: level);
       _refreshProgress();
     } else {
@@ -181,7 +144,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Nicht genug Gold!",
+            "Not enough gold!",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
@@ -196,10 +159,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
   Widget build(BuildContext context) {
     super.build(context);
 
-    // Calculations of scalefactor for the position of the level nodes
+    // RESPONSIVE SCALING:
+    // Calculates how much to scale coordinates and sizes based on current device width.
     final double screenWidth = MediaQuery.of(context).size.width;
     final double scale = screenWidth / _designWidth;
 
+    // XP & PLAYER LEVEL CALCULATION:
+    // This logic derives the "Visual Player Level" from the number of completed game levels.
     final int completedLevels = _highestUnlockedLevel - 1;
     const double xpPerLevel = 0.334;
     final double totalXp = completedLevels * xpPerLevel;
@@ -211,6 +177,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
         CustomScrollView(
           controller: _scrollController,
           slivers: [
+            // FIXED HEADER: Displays XP bar, Avatar, Gold, and Settings
             SliverAppBar(
               pinned: true,
               expandedHeight: 65,
@@ -220,7 +187,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // ===== Level + Progress =====
+                    // ===== Level Indicator + XP Progress Bar =====
                     Positioned(
                       left: 10,
                       top: 0,
@@ -281,7 +248,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                         ),
                       ),
                     ),
-                    //Frame image + Star (Horizontal zentriert)
+
+                    // ===== Profile Picture + Dynamic Frame (Centered) =====
                     Positioned(
                       left: 0,
                       right: 0,
@@ -293,13 +261,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Star profile picture
                               Image.asset(
                                 "assets/app_bar/profile_pictures/star.png",
                                 width: 60,
                                 height: 60,
                               ),
-                              // Dynamic Frame
+                              // Frame changes based on player level
                               Image.asset(
                                 playerLevel >= 6
                                     ? "assets/app_bar/frames/frame4.png"
@@ -316,7 +283,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                         ),
                       ),
                     ),
-                    // Gold
+
+                    // ===== Gold Counter =====
                     Positioned(
                       right: 48,
                       top: 5,
@@ -349,12 +317,16 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
                         ),
                       ),
                     ),
+
+                    // ===== Regen Timer =====
                     if (_currentGold < 10)
                       Positioned(
                         top: 43,
                         right: 78,
                         child: Text(_timerString, style: const TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.bold)),
                       ),
+
+                    // ===== Settings Button =====
                     Positioned(
                       right: 10,
                       top: 4,
@@ -368,7 +340,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
               ),
             ),
 
-            // MAP SECTIONS (with scale)
+            // MAP SECTIONS:
+            // The map is divided into background sections. Each section contains a list of levels.
+            // Coordinates are based on the original design and multiplied by the 'scale'.
             _buildSliverMapSection(context, scale, [
               _buildLevel(195, 530, LevelDefinitions.getLevelById(37), scale),
               _buildLevel(115, 493, LevelDefinitions.getLevelById(38), scale),
@@ -431,7 +405,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
           ],
         ),
 
-        // Debug Button
+        // Debug Tool
         Positioned(
           right: 10,
           top: 130,
@@ -445,7 +419,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
           ),
         ),
 
-        // Settings Overlay
+        // Settings Dialog Overlay
         if (_showSettings)
           Positioned.fill(
             child: Stack(
@@ -462,13 +436,14 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
-  // Hilfsmethode für Slivers, um den Code oben sauberer zu halten
+  /// Wraps a map background section into a SliverToBoxAdapter.
   Widget _buildSliverMapSection(BuildContext context, double scale, List<Widget> levels) {
     return SliverToBoxAdapter(
       child: _buildMapSection(context, scale, children: levels),
     );
   }
 
+  /// Builds a single background image section with level nodes as children.
   Widget _buildMapSection(BuildContext context, double scale, {required List<Widget> children}) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
@@ -485,14 +460,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
     );
   }
 
+  /// Creates a clickable level button at a specific coordinate.
+  /// Handles visual states for 'locked' vs 'unlocked'.
   Widget _buildLevel(double left, double top, Level level, double scale) {
     final bool isLocked = level.id > _highestUnlockedLevel;
-
-    // ICON GRÖSSE ebenfalls skalieren, damit sie zum Pfad passt
     final double iconSize = 63 * scale;
-    //Level Nodes
+
     return Positioned(
-      // scale the positions
       left: left * scale,
       top: top * scale,
       child: GestureDetector(
@@ -508,6 +482,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
               width: iconSize,
               height: iconSize,
             ),
+            // Lock overlay if level is not reachable yet
             if (isLocked)
               Container(
                 width: 58 * scale,
@@ -528,7 +503,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> with AutomaticKeepAlive
               Text(
                 level.id.toString(),
                 style: TextStyle(
-                  fontSize: 20 * scale, // Text ebenfalls leicht skalieren
+                  fontSize: 20 * scale,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                   shadows: const [
